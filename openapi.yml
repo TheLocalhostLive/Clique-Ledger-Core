@@ -1,0 +1,813 @@
+openapi: '3.0.2'
+info:
+  title: Clique Ledger RESTAPI
+  version: '1.0'
+servers:
+  - url: https://api.cliquesledger.com/v1
+tags:
+  - name: Clique
+    description: All endpoints for cliques  
+  - name: Transactions
+    description: All endpoints for transactions
+  - name: Users
+    description: All endpoints for users
+paths:
+  /cliques:
+    get:
+      tags:
+        - Clique 
+      responses:
+        200:
+          description: Cliques
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/CliqueResponse'
+
+    post:
+      tags:
+        - Clique 
+      description: This is to create a cliques
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CliqueResponse'
+              
+      responses:
+        201:
+          description: Clique created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CliqueResponse'
+
+  /cliques/{cliqueId}:
+    get:
+      tags: 
+        - Clique
+      parameters:
+        - $ref: '#/components/parameters/CliqueIdParam' 
+      responses:
+        200:
+          description: To get a cliques of given cliques id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CliqueResponse"
+    patch:
+      tags: 
+        - Clique
+      parameters:
+        - $ref: '#/components/parameters/CliqueIdParam'
+      requestBody:
+        description: 
+          This contains some partial update of cliquess. Eg. Clique name
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: 
+                  type: string
+                  example: cliques-1
+      responses:
+        200:
+          description: This is when the property is updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  field_name: 
+                    type: string
+                    example: name
+                  status:
+                    type: string
+                    example: SUCCESS
+        400:
+          description: This is when someone sends invalid field
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  field_name: 
+                    type: string
+                    example: name
+                  status:
+                    type: string
+                    example: FAILED
+        404:
+          description: This is when someone sends invalid cliquesId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  field_name: 
+                    type: string
+                    example: name
+                  status:
+                    type: string
+                    example: NOT FOUND
+    delete:
+      tags:
+        - Clique
+      parameters:
+        - $ref: '#/components/parameters/CliqueIdParam'
+
+      description: This is to delete a cliques 
+      responses:
+        204: 
+          description: Successfully Deleted the cliques 
+        404: 
+          description: In case Invalid id is provided for cliques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: NOT FOUND
+
+  /cliques/{cliquesId}/members/{memberId}:
+    post:
+      description: To add members in the group
+      tags: 
+          - Clique
+      parameters:
+        - $ref: '#/components/parameters/CliqueIdParam'
+        - $ref: '#/components/parameters/MemberIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CliqueRequest"
+      responses:
+        201:
+          description: members added successfully
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: SUCCESS
+                  message: 
+                    type: string
+                    example: members added successfully
+    delete:
+      description: To remove members from the group
+      tags: 
+          - Clique
+      parameters:
+        - $ref: '#/components/parameters/CliqueIdParam'
+        - $ref: '#/components/parameters/MemberIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                example: U00002
+      responses:
+        200:
+          description: members removed successfully
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: SUCCESS
+                  message: 
+                    type: string
+                    example: members added successfully
+      
+  /transactions:
+    get:
+      tags:
+        - Transactions
+      parameters:
+        - in: query
+          name: sender
+          description: This contains sender id
+          schema:
+            type: string
+            example: U00002
+        - in: query
+          name: receiver
+          description: This contains receiver Id
+          schema:
+            type: string
+            example: U00002
+        - in: query
+          name: clique
+          description: This contains cliques Id
+          schema:
+            type: string
+            example: L000001
+        - in: query
+          name: from-date
+          description: From date of trasaction
+          schema:
+            type: string
+            example: 2022-06-12
+        - in: query
+          name: to-date
+          description: To date of transaction
+          schema:
+            type: string
+            example: 2022-08-12
+        - in: query
+          name: limit
+          description: Pagination limit
+          schema:
+            type: integer
+            example: 10
+        - in: query
+          name: offset
+          description: Pagination offset
+          schema:
+            type: integer
+            example: 2
+
+          
+      responses:
+        200:
+          description: To get all transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/TransactionResponse"
+                    - $ref: "#/components/schemas/TransactionResponse"
+                  
+    post:
+      tags:
+        - Transactions
+      requestBody:
+        content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionRequest"
+          
+      responses:
+        201:
+          description: To get all transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+                status: SUCCESS
+  /transactions/{transactionId}:
+      get:
+        tags: 
+          - Transactions
+        parameters:
+          - $ref: '#/components/parameters/TransactionIdParam'
+        responses:
+          200:
+            description: To get all transaction for a specific Id
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/TransactionResponse' 
+      
+  /transaction/{transactionId}/verify/accept:
+    patch:
+      tags: 
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdParam'
+      responses:
+        200:
+          description: It should work only for send trasaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: SUCCESS
+                  message: 
+                    type: string
+                    example: successfully verified transaction
+        400:
+          description: In case someone tries to accept any other trasaction type appart from send
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:   
+                    type: string
+                    example: FAILED
+                  message: 
+                    type: string
+                    example: This type of transaction does not allow such action
+  
+  /transaction/{transactionId}/verify/reject:
+    patch:
+      tags: 
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdParam'
+      responses:
+        200:
+          description: It should work only for send trasaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: SUCCESS
+                  message: 
+                    type: string
+                    example: successfully rejected transaction
+        400:
+          description: In case someone tries to reject any other trasaction type appart from send
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:   
+                    type: string
+                    example: FAILED
+                  message: 
+                    type: string
+                    example: This type of transaction does not allow such action
+
+      
+  /transactions/{transactionId}/participants:
+    post:
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              example: ['M0005', 'M00010']
+
+      responses:
+        204:
+          description: When the memeber is added successfully
+        400:
+          description: In case participant list contains wrong id. None of theme will be added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  message:
+                    type: string
+                    example: One or more participant id is provided wrong
+        403:
+          description: When non admin tries to add someone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  message: 
+                    type: string
+                    example: Permission Denined! Only admins can do this action.
+        404:
+          description: When transactionId is provided wrong
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      example: FAILED
+                    message:
+                      type: string
+                      example: transactionId is provided wrong
+    delete:
+      tags: 
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              example: ['M00010']
+      responses:
+        204:
+          description: When it is deleted successfully
+        400:
+          description: In case participant list contains wrong id. None of theme will be added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  message:
+                    type: string
+                    example: One or more participant id is provided wrong
+        403:
+          description: When non admin tries to add someone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  message: 
+                    type: string
+                    example: Permission Denined! Only admins can do this action.
+        404:
+          description: When transactionId is provided wrong
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      example: FAILED
+                    message:
+                      type: string
+                      example: transactionId is provided wrong
+
+
+
+  /users:
+    get:
+      tags:
+        - Users
+      responses:
+        200:
+          description: Get all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+
+    post:
+      tags: 
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+             $ref: '#/components/schemas/UserRequest'
+      responses:
+        201:
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        400:
+          description: In case any field value is missing or does not match requirement
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  message:
+                    type: string
+                    example: Password should be 8 character long
+  /users/{userId}:
+    get:
+      tags: 
+        - Users
+      responses:
+        200:
+          description: Sending details of the user with given userId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: SUCCESS
+        404:
+          description: In case someone sends a wrong userId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: NOT FOUND
+    patch:
+      tags: 
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: 
+                  type: string
+                  example: update@gmail.com
+      responses:
+        204:
+          description: Successfully updated the field
+        400:
+          description: In case any invalid field is provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  error:
+                    type: string
+                    example: Invalid field provided
+        404:
+          description: In case invalid userid provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: FAILED
+                  error: 
+                    type: string
+                    example: User not found
+
+    delete:
+      tags:
+        - Users
+      responses:
+        204:
+          description: Successfully deleted
+        401:
+          description: In case one unauthorised user tries to delete an account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: FAILED
+                  error: 
+                    type: string
+                    example: You need to login first!
+        403:
+          description: In case one user tries to delete other user account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: FAILED
+                  error: 
+                    type: string
+                    example: Permission Denied
+        404:
+          description: In case invalid userid provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: FAILED
+                  error: 
+                    type: string
+                    example: User not found
+        500:
+          $ref: '#/components/responses/ISE'
+
+components:
+  responses:
+    ISE:
+      description: In case the of internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: 
+                type: string
+                example: INTERNAL SERVER ERROR
+              message:
+                type: string
+                example: Please try later!
+
+  parameters:
+    CliqueIdParam:
+        in: path
+        name: cliqueId
+        description: This contains cliques Id
+        required: true
+        schema:
+          type: string
+          example: L000001
+    MemberIdParam:
+        in: path
+        name: memberId
+        description: This contains member Id
+        required: true
+        schema:
+          type: string
+          example: M000001
+    TransactionIdParam:
+        in: path
+        name: transactionId
+        description: This contains member Id
+        required: true
+        schema:
+          type: string
+          example: TN000001
+    
+  schemas:
+    CliqueRequest:
+      type: object
+      properties:
+        name: 
+          type: string
+          example: Alexa
+        funds:
+          type: number
+          example: 5000
+
+    CliqueResponse:
+      type: object
+      properties: 
+          id:
+            type: string
+            example: C000001
+          name:
+            type: string
+            example: cliques name
+          admins:
+            type: array
+            items:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  example: U0001
+                member_id:
+                  type: string
+                  example: M00001
+          members:
+            type: array
+            items:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  example: U0001
+                member_id:
+                  type: string
+                  example: M00001
+          fund: 
+            type: number
+            example: 5000
+          spend: 
+            type: number
+            example: 1000
+          isActive:
+            type: boolean
+            example: true
+
+    TransactionRequest:
+      type: object
+      properties: 
+          type:
+            type: string
+            example: spend
+          sender:
+            type: string
+            example: M00002
+          paritcipants:
+            type: array
+            items:
+              type: object
+              properties:
+                id: 
+                  type: string
+                  example: M00002
+                amount: 
+                  type: number
+                  example: 300
+          amount:
+            type: number
+            example: 1000
+          
+    TransactionResponse:
+      type: object
+      properties: 
+          id:
+            type: string
+            example: TN00001
+          clique_id: 
+            type: string
+            example: C000001
+          type:
+            type: string
+            example: spend
+          sender:
+            type: object
+            properties:
+              user_id: 
+                type: string
+                example: U00002
+              member_id: 
+                type: string
+                example: M000001 
+          paritcipants:
+            type: array
+            items:
+              type: object
+              properties:
+                user_id: 
+                  type: string
+                  example: U00002
+                member_id:
+                  type: string
+                  example: M000001
+                part_amount: 
+                  type: number
+                  example: 300
+          spend_amount:
+            type: number
+            example: 1000
+
+    UserRequest:       
+      type: object
+      properties:
+        name:
+          type: string
+          example: Alexa Alexa
+        phone:
+          type: string
+          example: '9000000000'
+        email:
+          type: string
+          example: alexa@cliquesledger.com
+        password:
+          type: string
+          example: Zx00%$55
+      
+    UserResponse:
+      type: object
+      properties:
+        id: 
+          type: string
+          example: U00002
+        name:
+          type: string
+          example: Alexa Alexa
+        phone:
+          type: string
+          example: '9000000000'
+        email:
+          type: string
+          example: alexa@cliquesledger.com
+        
+
+  
