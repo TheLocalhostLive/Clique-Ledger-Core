@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+      "target": "ES2020", // Specifies the target ECMAScript version
+      "module": "commonjs", // Specifies the module system to use
+      "strict": true, // Enable all strict type-checking options
+      "esModuleInterop": true, // Enable compatibility with CommonJS and ES Modules
+      "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references to the same file
+      "skipLibCheck": true, // Skip type checking of all declaration files
+      "outDir": "./dist", // Redirect output structure to the dist directory
+      "rootDir": "./src", // Specify the root directory of input files
+      "resolveJsonModule": true, // Include modules imported with .json extension
+      "typeRoots": ["./node_modules/@types"], // List of folders to include type definitions from
+      "lib": ["ES2020"], // Specify library files to be included in the compilation
+      "sourceMap": true, // Generate corresponding .map files for debugging
+      "declaration": true, // Generates corresponding .d.ts files
+      "noImplicitAny": true, // Raise error on expressions and declarations with an implied `any` type
+      "noUnusedLocals": true, // Report errors on unused local variables
+      "noUnusedParameters": false, // Report errors on unused parameters
+      "noImplicitReturns": true, // Report error when not all code paths in function return a value
+      "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statements
+      "moduleResolution": "node" // Specify module resolution strategy
+    },
+    "include": ["src/**/*.ts"], // Include all TypeScript files in the src directory
+    "exclude": ["node_modules", "dist"] // Exclude the node_modules and dist directories
+}
+  
