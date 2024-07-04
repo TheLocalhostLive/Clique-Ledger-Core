@@ -42,11 +42,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
-        multiDexEnabled = true
-        manifestPlaceholders = [
-            'appAuthRedirectScheme': "com.core.cliqueledger",
-            'applicationName': "com.core.cliqueledger"
-            ]
+        manifestPlaceholders = [appAuthRedirectScheme: 'com.core.cliqueledger',
+         applicationName: 'com.core.cliqueledger.CliqueLedgerApplication']
     }
 
     buildTypes {

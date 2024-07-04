@@ -113,7 +113,7 @@ class Signup extends StatelessWidget {
             ),
              ElevatedButton(
                     onPressed: () async {
-                      await Authservice.instance.login();
+                      //await Authservice.instance.login();
                       if (Authservice.instance.loginInfo.isLoggedIn) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Login successful')),

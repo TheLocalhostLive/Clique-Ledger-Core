@@ -1,23 +1,26 @@
 
-
 import 'package:cliqueledger/pages/dashbord.dart';
 import 'package:cliqueledger/pages/login.dart';
 import 'package:cliqueledger/pages/signup.dart';
 import 'package:cliqueledger/pages/welcome_page.dart';
 import 'package:cliqueledger/service/authservice.dart';
-import 'package:cliqueledger/utility/routers_constant.dart';
 import 'package:go_router/go_router.dart';
 
 class Routers {
   static GoRouter routers(bool isAuth) {
     final GoRouter router = GoRouter(
       redirect: (context, state) {
-        if (!isAuth&& state.uri.toString().startsWith('/api/auth/')) {
-          return context.namedLocation(RoutersConstants.signUpPageRoute);
-        }
+        final loggedIn = Authservice.instance.loginInfo.isLoggedIn;
+        final isLogging = state.uri.toString() == '/api/auth/signup';
+
+        if(!loggedIn && !isLogging) return '/api/auth/signup';
+
+        if(loggedIn && isLogging) return '/api/auth/dashboard';
         return null;
       },
       refreshListenable: Authservice.instance.loginInfo,
+      debugLogDiagnostics: false,
+      
       routes: <GoRoute>[
         GoRoute(
           path: '/',
