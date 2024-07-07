@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class Signup extends StatelessWidget {
+class Signup extends StatefulWidget {
   const Signup({super.key});
 
+  @override
+  State<Signup> createState() => _SignupState();
+}
+
+class _SignupState extends State<Signup> {
   @override
   Widget build(BuildContext context) {
     ValueNotifier<bool> changedButton = ValueNotifier(false);
@@ -34,98 +39,39 @@ class Signup extends StatelessWidget {
             SizedBox(
               height: 20.0,
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Enter your First Name",
-                      labelText: "First Name",
-                    ),
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Enter your Last Name",
-                      labelText: "Last Name",
-                    ),
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Enter your email",
-                      labelText: "Email",
-                    ),
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Enter your Phone Number",
-                      labelText: "Phone",
-                    ),
-                  ),
-                  TextFormField(
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: "Create a Password",
-                      labelText: "Password",
-                    ),
-                  ),
-                ],
-              ),
+            SizedBox(
+              height: 20.0,
             ),
             SizedBox(
               height: 20.0,
             ),
-            InkWell(
-              onTap: () {
-                changedButton.value = true;
-              },
-              child: ValueListenableBuilder<bool>(
-                valueListenable: changedButton,
-                builder: (context, value, child) {
-                  return AnimatedContainer(
-                    duration: Duration(milliseconds: 300),
-                    width: value ? 50 : 150,
-                    height: 50,
-                    alignment: Alignment.center,
-                    child: value
-                        ? Icon(
-                            Icons.done,
-                            color: Colors.white,
-                          )
-                        : Text(
-                            "Sign Up",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.0,
-                            ),
-                          ),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF145374),
-                      borderRadius: BorderRadius.circular(value ? 50 : 6),
-                    ),
+            ElevatedButton(
+              // onPressed: () async {
+              //   //await Authservice.instance.login();
+              //   if (Authservice.instance.loginInfo.isLoggedIn) {
+              //     ScaffoldMessenger.of(context).showSnackBar(
+              //       SnackBar(content: Text('Login successful')),
+              //     );
+              //   } else {
+              //     ScaffoldMessenger.of(context).showSnackBar(
+              //       SnackBar(content: Text('Login failed')),
+              //     );
+              //   }
+              // },
+              onPressed: () async {
+                await Authservice.instance.login();
+                if (Authservice.instance.loginInfo.isLoggedIn) {
+                  // Navigate to the dashboard or update the UI accordingly
+                  Navigator.pushNamed(context, '/api/auth/dashboard');
+                } else {
+                  // Show an error message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Login failed')),
                   );
-                },
-              ),
+                }
+              },
+              child: Text("Register | Login"),
             ),
-            SizedBox(
-              height: 20.0,
-            ),
-             ElevatedButton(
-                    onPressed: () async {
-                      //await Authservice.instance.login();
-                      if (Authservice.instance.loginInfo.isLoggedIn) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Login successful')),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Login failed')),
-                        );
-                      }
-                    },
-                    child: Text("Register | Login"),
-                  ),
           ],
         ),
       ),
