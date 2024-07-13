@@ -12,7 +12,7 @@ app.use('/api/v1/cliques', cliques);
 
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, world!3');
+  res.send('Hello, world!69');
 });
 
 
