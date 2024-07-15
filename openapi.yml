@@ -134,22 +134,25 @@ paths:
                     type: string
                     example: NOT FOUND
 
-  /cliques/{cliquesId}/members/{memberId}:
+  /cliques/{cliquesId}/members/:
     post:
       description: To add members in the group
       tags: 
           - Clique
       parameters:
         - $ref: '#/components/parameters/CliqueIdParam'
-        - $ref: '#/components/parameters/MemberIdParam'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CliqueRequest"
+              type: array
+              example:
+                - U00001
+                - U00002
+                - U00003
       responses:
         201:
-          description: members added successfully
+          description: Members added successfully. This response will return the member id for each user id provided in the request array.
           content:
             application/json:
               schema: 
@@ -161,21 +164,41 @@ paths:
                   message: 
                     type: string
                     example: members added successfully
+                  member_ids: 
+                    example:
+                      - uid: U00001
+                        mid: M000001
+                      - uid: U00002
+                        mid: M000002
+                      - uid: U00003
+                        mid: M000003
+        400:
+          description: In case one or more invalid userid is provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  message:
+                    type: string
+                    example: One or more userid is invalid. No members added. 
     delete:
       description: To remove members from the group
       tags: 
           - Clique
       parameters:
         - $ref: '#/components/parameters/CliqueIdParam'
-        - $ref: '#/components/parameters/MemberIdParam'
       requestBody:
         content:
           application/json:
             schema:
               type: array
-              items:
-                type: string
-                example: U00002
+              example: 
+                 - M00002
+                 - M00003
       responses:
         200:
           description: members removed successfully
@@ -190,6 +213,19 @@ paths:
                   message: 
                     type: string
                     example: members added successfully
+        400:
+          description: In case one or more invalid member is provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    example: FAILED
+                  message:
+                    type: string
+                    example: One or more userid is invalid.  No mebers deleted. 
       
   /transactions:
     get:
