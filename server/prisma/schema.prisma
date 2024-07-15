@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id    Int @id @default(autoincrement())
+  user_name  String
+  mail       String @unique
+  password   String
+  created_at DateTime @default(now())
+  members    Member[]
+  transactions Transaction[] @relation("Sender")
+}
+
+model Transaction {
+  transaction_id   Int       @id @default(autoincrement())
+  amount           Float
+  description      String
+  sender_id        Int
+  clique_id        Int
+  transaction_type String
+  done_at          DateTime  @default(now())
+  spend            Spend[]
+  sender           User      @relation("Sender", fields: [sender_id], references: [user_id])
+  clique           Clique    @relation(fields: [clique_id], references: [clique_id])
+}
+
+model Spend {
+  transaction_id Int
+  member_id      Int
+  amount         Int
+  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  member         Member      @relation(fields: [member_id], references: [member_id])
+  @@id([transaction_id, member_id])
+}
+
+model Clique {
+  clique_id   Int       @id @default(autoincrement())
+  clique_name String
+  created_at  DateTime
+  is_fund     Boolean
+  fund        Int       @default(0)
+  is_active   Boolean   @default(true)
+  members     Member[]
+  transactions Transaction[]
+}
+
+model Member {
+  member_id Int       @id @default(autoincrement())
+  user_id   Int
+  clique_id Int
+  is_admin  Boolean
+  joined_at DateTime
+  amount    Float
+  due       Boolean
+  user      User      @relation(fields: [user_id], references: [user_id])
+  clique    Clique    @relation(fields: [clique_id], references: [clique_id])
+  spends    Spend[]
+  ledger    Ledger[]
+}
+
+model Ledger {
+  member_id Int
+  amount    Float
+  is_due    Boolean
+  member    Member @relation(fields: [member_id], references: [member_id])
+  @@id([member_id])
+}
+
