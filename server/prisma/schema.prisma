@@ -8,67 +8,70 @@ datasource db {
 }
 
 model User {
-  user_id    Int @id @default(autoincrement())
+  user_id    String   @id
   user_name  String
-  mail       String @unique
+  mail       String   @unique
+  phone_no      String   @unique
   password   String
   created_at DateTime @default(now())
   members    Member[]
-  transactions Transaction[] @relation("Sender")
 }
 
 model Transaction {
-  transaction_id   Int       @id @default(autoincrement())
+  transaction_id   String   @id
   amount           Float
   description      String
-  sender_id        Int
-  clique_id        Int
+  sender_id        String
+  clique_id        String
   transaction_type String
-  done_at          DateTime  @default(now())
+  is_verified      String   @default("not_verified")
+  done_at          DateTime @default(now())
   spend            Spend[]
-  sender           User      @relation("Sender", fields: [sender_id], references: [user_id])
-  clique           Clique    @relation(fields: [clique_id], references: [clique_id])
+  sender           Member   @relation("Sender", fields: [sender_id], references: [member_id])
+  clique           Clique   @relation(fields: [clique_id], references: [clique_id])
 }
 
 model Spend {
-  transaction_id Int
-  member_id      Int
-  amount         Int
+  transaction_id String
+  member_id      String
+  amount         Float
   transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id])
   member         Member      @relation(fields: [member_id], references: [member_id])
+
   @@id([transaction_id, member_id])
 }
 
 model Clique {
-  clique_id   Int       @id @default(autoincrement())
-  clique_name String
-  created_at  DateTime
-  is_fund     Boolean
-  fund        Int       @default(0)
-  is_active   Boolean   @default(true)
-  members     Member[]
+  clique_id    String        @id
+  clique_name  String
+  created_at   DateTime      @default(now())
+  is_fund      Boolean
+  fund         Float         @default(0)
+  is_active    Boolean       @default(true)
+  members      Member[]
   transactions Transaction[]
 }
 
 model Member {
-  member_id Int       @id @default(autoincrement())
-  user_id   Int
-  clique_id Int
-  is_admin  Boolean
-  joined_at DateTime
-  amount    Float
-  due       Boolean
-  user      User      @relation(fields: [user_id], references: [user_id])
-  clique    Clique    @relation(fields: [clique_id], references: [clique_id])
-  spends    Spend[]
-  ledger    Ledger[]
+  member_id    String        @id
+  user_id      String
+  clique_id    String
+  is_admin     Boolean
+  joined_at    DateTime
+  amount       Float
+  due          Boolean
+  user         User          @relation(fields: [user_id], references: [user_id])
+  clique       Clique        @relation(fields: [clique_id], references: [clique_id])
+  spends       Spend[]
+  ledger       Ledger[]
+  transactions Transaction[] @relation("Sender")
 }
 
 model Ledger {
-  member_id Int
+  member_id String
   amount    Float
   is_due    Boolean
-  member    Member @relation(fields: [member_id], references: [member_id])
+  member    Member  @relation(fields: [member_id], references: [member_id])
+
   @@id([member_id])
 }
-
