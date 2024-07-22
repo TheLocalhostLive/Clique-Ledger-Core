@@ -18,7 +18,7 @@ class WelcomePage extends StatelessWidget {
         ElevatedButton(
           child: const Text("Get Started"),
           onPressed: () {
-            GoRouter.of(context).pushNamed(RoutersConstants.signUpPageRoute);
+            context.go("/signup");
           },
         )
       ],

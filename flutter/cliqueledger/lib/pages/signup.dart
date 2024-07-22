@@ -1,12 +1,12 @@
 import 'package:cliqueledger/service/authservice.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 
 class Signup extends StatefulWidget {
-  const Signup({super.key});
-
   @override
-  State<Signup> createState() => _SignupState();
+  _SignupState createState() => _SignupState();
 }
 
 class _SignupState extends State<Signup> {
@@ -14,15 +14,17 @@ class _SignupState extends State<Signup> {
   Widget build(BuildContext context) {
     ValueNotifier<bool> changedButton = ValueNotifier(false);
 
-    return Material(
-      color: Colors.white,
-      child: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Signup"),
+      ),
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Image.asset(
               "assets/images/hello.png",
               fit: BoxFit.cover,
-            ),  
+            ),
             const SizedBox(
               height: 30.0,
             ),
@@ -37,32 +39,19 @@ class _SignupState extends State<Signup> {
             const SizedBox(
               height: 20.0,
             ),
-            const SizedBox(
-              height: 20.0,
-            ),
-            const SizedBox(
-              height: 20.0,
-            ),
             ElevatedButton(
-              // onPressed: () async {
-              //   //await Authservice.instance.login();
-              //   if (Authservice.instance.loginInfo.isLoggedIn) {
-              //     ScaffoldMessenger.of(context).showSnackBar(
-              //       SnackBar(content: Text('Login successful')),
-              //     );
-              //   } else {
-              //     ScaffoldMessenger.of(context).showSnackBar(
-              //       SnackBar(content: Text('Login failed')),
-              //     );
-              //   }
-              // },
               onPressed: () async {
+                // Attempt to login/signup
                 await Authservice.instance.login();
+                
+                // Check if login/signup was successful
                 if (Authservice.instance.loginInfo.isLoggedIn) {
-                  // Navigate to the dashboard or update the UI accordingly
-                  Navigator.pushNamed(context, '/api/auth/dashboard');
+                  // Navigate to the dashboard
+                  context.go('/dashboard');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Login successful')),
+                  );
                 } else {
-                  // Show an error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Login failed')),
                   );
@@ -76,5 +65,3 @@ class _SignupState extends State<Signup> {
     );
   }
 }
-
-
