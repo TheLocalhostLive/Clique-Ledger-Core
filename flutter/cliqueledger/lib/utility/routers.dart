@@ -21,12 +21,12 @@ class Routers {
       },
       refreshListenable: Authservice.instance.loginInfo,
       debugLogDiagnostics: false,
-      
+      initialLocation: Authservice.instance.loginInfo.isLoggedIn ? '/dashboard' : '/',
       routes: <GoRoute>[
         GoRoute(
           path: '/',
           name: 'Welcome',
-          builder: (context, state) => const WelcomePage(),
+          builder: (context, state) => WelcomePage(),
         ),
         GoRoute(
           path: '/signup',

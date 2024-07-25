@@ -5,6 +5,7 @@ import 'package:cliqueledger/utility/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart';
 
 class _LoginInfo extends ChangeNotifier {
   var _isLoggedIn = false;
@@ -32,25 +33,43 @@ class Authservice {
   Auth0IdToken? idToken;
   String? accessToken;
 
-  FlutterSecureStorage? secureStorage;
+  FlutterSecureStorage? secureStorage = const FlutterSecureStorage();
 
-  bool isAuthResultValid(AuthorizationTokenResponse? result) {
+  bool isAuthResultValid(TokenResponse? result) {
     return result != null && result.idToken != null;
   }
 
-  Future<String> _setLocalVariables(AuthorizationTokenResponse? result) async {
+  init() async {
+    
+    if(secureStorage == null) return false;
+    
+    final secureRefreshToken =
+        await secureStorage!.read(key: REFRESH_TOKEN_KEY);
+    
+    print(secureRefreshToken);
+    if (secureRefreshToken == null) return false;
+
+    final response = await appAuth.token(TokenRequest(AUTH0_CLIENT_ID, AUTH0_REDIRECT_URI,
+        issuer: AUTH0_ISSUER, refreshToken: secureRefreshToken));
+
+    final result = await _setLocalVariables(response);
+    
+    return result == "Success";
+  }
+
+  Future<String> _setLocalVariables(TokenResponse? result) async {
     if (isAuthResultValid(result)) {
       accessToken = result!.accessToken!;
       idToken = parseIdToken(result.idToken!);
-      
 
-      if (result.refreshToken != null) {
+      if (secureStorage != null && result.refreshToken != null) {
         await secureStorage!.write(
           key: REFRESH_TOKEN_KEY,
           value: result.refreshToken,
         );
       }
       _loginInfo.isLoggedIn = true;
+      
       return 'Success';
     }
     return 'Something is Wrong!';
@@ -68,7 +87,7 @@ class Authservice {
     if (isAuthResultValid(result)) {
       final auth0IdToken = parseIdToken(result!.idToken!);
       print(auth0IdToken);
-      _loginInfo._isLoggedIn = true;
+      _loginInfo.isLoggedIn = true;
     }
 
     return _setLocalVariables(result);

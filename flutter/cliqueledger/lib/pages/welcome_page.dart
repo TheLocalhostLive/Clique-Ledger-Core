@@ -1,10 +1,10 @@
+import 'package:cliqueledger/service/authservice.dart';
 import 'package:cliqueledger/utility/routers_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
     return Material(
