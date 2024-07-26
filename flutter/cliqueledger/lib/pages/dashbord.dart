@@ -1,18 +1,16 @@
 
 import 'package:cliqueledger/themes/appBarTheme.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 class Dashbord extends StatelessWidget {
   const Dashbord({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
+    return const DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: GradientAppBar(title:"Clique Ledger"),
-        body: const Column(children: [
+        body: Column(children: [
           TabBar(
             tabs:[
               Tab(text:"Active Ledger"),

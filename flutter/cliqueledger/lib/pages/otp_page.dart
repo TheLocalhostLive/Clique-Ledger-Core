@@ -1,8 +1,6 @@
 
 import 'package:cliqueledger/themes/appBarTheme.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 
 class OtpPage extends StatelessWidget {
@@ -18,12 +16,12 @@ class OtpPage extends StatelessWidget {
         color: Colors.black
       ),
       decoration: BoxDecoration(
-        color: Color(0xFFa2b4bd),
+        color: const Color(0xFFa2b4bd),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.transparent)
     ));
     return Scaffold(
-      appBar: GradientAppBar(title: "OTP Verification"),
+      appBar: const GradientAppBar(title: "OTP Verification"),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Container(
@@ -31,7 +29,7 @@ class OtpPage extends StatelessWidget {
           width: double.infinity,
           child: Column(
             children: [
-              Text("Otp is sent to to your whatsapp and your email",style: TextStyle(
+              const Text("Otp is sent to to your whatsapp and your email",style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),),

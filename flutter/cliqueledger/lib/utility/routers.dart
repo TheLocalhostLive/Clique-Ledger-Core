@@ -25,22 +25,22 @@ class Routers {
         GoRoute(
           path: '/',
           name: 'Welcome',
-          builder: (context, state) => WelcomePage(),
+          builder: (context, state) => const WelcomePage(),
         ),
         GoRoute(
           path: '/api/auth/signup',
           name: 'Signup',
-          builder: (context, state) => Signup(),
+          builder: (context, state) => const Signup(),
         ),
         GoRoute(
           path: '/api/auth/login',
           name: 'Login',
-          builder: (context, state) => LoginPage(),
+          builder: (context, state) => const LoginPage(),
         ),
         GoRoute(
           path: '/api/auth/dashboard',
           name: 'Dashboard',
-          builder: (context, state) => Dashbord(),
+          builder: (context, state) => const Dashbord(),
         ),
       ],
     );

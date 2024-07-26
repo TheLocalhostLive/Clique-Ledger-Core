@@ -25,14 +25,14 @@ class SignUpDone extends StatelessWidget {
                 fontWeight: FontWeight.w600
             ),
           ),
-          SizedBox(height: 40,),
+          const SizedBox(height: 40,),
           ElevatedButton(onPressed: (){},
-          child: Text("Log in Now",style: TextStyle(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF145374),
+          ),
+          child: const Text("Log in Now",style: TextStyle(
             color: Colors.white
           ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF145374),
           )
           
           

@@ -25,7 +25,7 @@ class Authservice {
   final _loginInfo = _LoginInfo();
   get loginInfo => _loginInfo;
 
-  final appAuth = FlutterAppAuth();
+  final appAuth = const FlutterAppAuth();
 
   login() async {
     final authorizationTokenRequest = AuthorizationTokenRequest(

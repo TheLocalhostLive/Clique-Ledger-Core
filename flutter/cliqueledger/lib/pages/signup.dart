@@ -1,8 +1,6 @@
 import 'package:cliqueledger/service/authservice.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -25,7 +23,7 @@ class _SignupState extends State<Signup> {
               "assets/images/hello.png",
               fit: BoxFit.cover,
             ),  
-            SizedBox(
+            const SizedBox(
               height: 30.0,
             ),
             Text(
@@ -33,16 +31,16 @@ class _SignupState extends State<Signup> {
               style: TextStyle(
                 fontFamily: GoogleFonts.pacifico().fontFamily,
                 fontSize: 30.0,
-                color: Color(0xFF145374),
+                color: const Color(0xFF145374),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20.0,
             ),
-            SizedBox(
+            const SizedBox(
               height: 20.0,
             ),
-            SizedBox(
+            const SizedBox(
               height: 20.0,
             ),
             ElevatedButton(
@@ -66,11 +64,11 @@ class _SignupState extends State<Signup> {
                 } else {
                   // Show an error message
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Login failed')),
+                    const SnackBar(content: Text('Login failed')),
                   );
                 }
               },
-              child: Text("Register | Login"),
+              child: const Text("Register | Login"),
             ),
           ],
         ),

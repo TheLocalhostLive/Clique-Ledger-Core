@@ -1,19 +1,18 @@
-
-import 'package:cliqueledger/utility/routers.dart';
+import 'package:cliqueledger/pages/ledgerPage.dart';
 import 'package:flutter/material.dart';
-
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-       routerConfig: Routers.routers(true),
+    return MaterialApp(
+      title: 'Clique Ledger',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Ledgerpage()
     );
   }
 }

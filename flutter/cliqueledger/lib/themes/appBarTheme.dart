@@ -9,7 +9,7 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(title,style: TextStyle(
+      title: Text(title,style: const TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.bold ),),
       flexibleSpace: Container(
