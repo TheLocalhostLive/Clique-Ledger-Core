@@ -48,11 +48,7 @@ class LogoutButton extends StatelessWidget {
     return ElevatedButton(
       child: Text("Logout"),
       onPressed: () async {
-        Authservice.instance.loginInfo.isLoggedIn = false;
-        FlutterSecureStorage secureStorage = const FlutterSecureStorage();
-        await secureStorage.delete(key: REFRESH_TOKEN_KEY);
-        print("set to false");
-        context.go("/");
+        Authservice.instance.logout();
       },
     );
   }

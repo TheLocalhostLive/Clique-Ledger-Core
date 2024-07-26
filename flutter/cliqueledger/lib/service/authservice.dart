@@ -40,20 +40,20 @@ class Authservice {
   }
 
   init() async {
-    
-    if(secureStorage == null) return false;
-    
+    if (secureStorage == null) return false;
+
     final secureRefreshToken =
         await secureStorage!.read(key: REFRESH_TOKEN_KEY);
-    
+
     print(secureRefreshToken);
     if (secureRefreshToken == null) return false;
 
-    final response = await appAuth.token(TokenRequest(AUTH0_CLIENT_ID, AUTH0_REDIRECT_URI,
+    final response = await appAuth.token(TokenRequest(
+        AUTH0_CLIENT_ID, AUTH0_REDIRECT_URI,
         issuer: AUTH0_ISSUER, refreshToken: secureRefreshToken));
 
     final result = await _setLocalVariables(response);
-    
+
     return result == "Success";
   }
 
@@ -69,17 +69,19 @@ class Authservice {
         );
       }
       _loginInfo.isLoggedIn = true;
-      
+
       return 'Success';
     }
     return 'Something is Wrong!';
   }
 
-  login() async {
+  Future<String> login() async {
     final authorizationTokenRequest = AuthorizationTokenRequest(
         AUTH0_CLIENT_ID, AUTH0_REDIRECT_URI,
         issuer: AUTH0_ISSUER,
-        scopes: ['openid', 'profile', 'email', 'offline_access']);
+        scopes: ['openid', 'profile', 'email', 'offline_access'],
+        promptValues: ["login"]
+        );
 
     final result =
         await appAuth.authorizeAndExchangeCode(authorizationTokenRequest);
@@ -91,6 +93,20 @@ class Authservice {
     }
 
     return _setLocalVariables(result);
+  }
+
+  Future<void> logout() async {
+    if (secureStorage != null) {
+      // final request = EndSessionRequest(
+      //   idTokenHint: jsonEncode(idToken!.toJson()),
+      //   issuer: AUTH0_ISSUER,
+      //   postLogoutRedirectUrl: AUTH0_REDIRECT_URI
+      // );
+      //await appAuth.endSession(request);
+      await secureStorage!.delete(key: REFRESH_TOKEN_KEY);
+      _loginInfo.isLoggedIn = false;
+      
+    }
   }
 
   Auth0IdToken parseIdToken(String idToken) {
