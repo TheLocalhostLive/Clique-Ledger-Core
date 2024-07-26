@@ -33,15 +33,13 @@ class Authservice {
   Auth0IdToken? idToken;
   String? accessToken;
 
-  FlutterSecureStorage? secureStorage = const FlutterSecureStorage();
+  FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   bool isAuthResultValid(TokenResponse? result) {
     return result != null && result.idToken != null;
   }
 
   init() async {
-    if (secureStorage == null) return false;
-
     final secureRefreshToken =
         await secureStorage!.read(key: REFRESH_TOKEN_KEY);
 
@@ -61,9 +59,8 @@ class Authservice {
     if (isAuthResultValid(result)) {
       accessToken = result!.accessToken!;
       idToken = parseIdToken(result.idToken!);
-
-      if (secureStorage != null && result.refreshToken != null) {
-        await secureStorage!.write(
+      if (result.refreshToken != null) {
+        await secureStorage.write(
           key: REFRESH_TOKEN_KEY,
           value: result.refreshToken,
         );
@@ -80,8 +77,7 @@ class Authservice {
         AUTH0_CLIENT_ID, AUTH0_REDIRECT_URI,
         issuer: AUTH0_ISSUER,
         scopes: ['openid', 'profile', 'email', 'offline_access'],
-        promptValues: ["login"]
-        );
+        promptValues: ["login"]);
 
     final result =
         await appAuth.authorizeAndExchangeCode(authorizationTokenRequest);
@@ -96,17 +92,14 @@ class Authservice {
   }
 
   Future<void> logout() async {
-    if (secureStorage != null) {
-      // final request = EndSessionRequest(
-      //   idTokenHint: jsonEncode(idToken!.toJson()),
-      //   issuer: AUTH0_ISSUER,
-      //   postLogoutRedirectUrl: AUTH0_REDIRECT_URI
-      // );
-      //await appAuth.endSession(request);
-      await secureStorage!.delete(key: REFRESH_TOKEN_KEY);
-      _loginInfo.isLoggedIn = false;
-      
-    }
+    // final request = EndSessionRequest(
+    //   idTokenHint: jsonEncode(idToken!.toJson()),
+    //   issuer: AUTH0_ISSUER,
+    //   postLogoutRedirectUrl: AUTH0_REDIRECT_URI
+    // );
+    //await appAuth.endSession(request);
+    await secureStorage!.delete(key: REFRESH_TOKEN_KEY);
+    _loginInfo.isLoggedIn = false;
   }
 
   Auth0IdToken parseIdToken(String idToken) {
