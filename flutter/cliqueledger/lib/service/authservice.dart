@@ -1,6 +1,7 @@
 import 'dart:convert';
-
+import 'package:http/http.dart' as http;
 import 'package:cliqueledger/models/auth0_id_token.dart';
+import 'package:cliqueledger/models/auth0_user.dart';
 import 'package:cliqueledger/utility/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
@@ -33,6 +34,8 @@ class Authservice {
   Auth0IdToken? idToken;
   String? accessToken;
 
+  Auth0User? profile;
+
   FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   bool isAuthResultValid(TokenResponse? result) {
@@ -59,6 +62,7 @@ class Authservice {
     if (isAuthResultValid(result)) {
       accessToken = result!.accessToken!;
       idToken = parseIdToken(result.idToken!);
+      profile = await getUserDetails(accessToken!);
       if (result.refreshToken != null) {
         await secureStorage.write(
           key: REFRESH_TOKEN_KEY,
@@ -114,5 +118,14 @@ class Authservice {
     );
 
     return Auth0IdToken.fromJson(json);
+  }
+
+  getUserDetails(String accessToken) async {
+    final url = Uri.https(AUTH0_DOMAIN, "/userinfo");
+    final response = await http.get(url, headers: {
+      'Authorization' : 'Bearer $accessToken'
+    });
+
+    print('User details ${response.body}');
   }
 }
