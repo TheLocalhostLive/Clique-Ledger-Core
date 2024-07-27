@@ -44,7 +44,7 @@ class Authservice {
 
   init() async {
     final secureRefreshToken =
-        await secureStorage!.read(key: REFRESH_TOKEN_KEY);
+        await secureStorage.read(key: REFRESH_TOKEN_KEY);
 
     print(secureRefreshToken);
     if (secureRefreshToken == null) return false;
@@ -102,7 +102,7 @@ class Authservice {
     //   postLogoutRedirectUrl: AUTH0_REDIRECT_URI
     // );
     //await appAuth.endSession(request);
-    await secureStorage!.delete(key: REFRESH_TOKEN_KEY);
+    await secureStorage.delete(key: REFRESH_TOKEN_KEY);
     _loginInfo.isLoggedIn = false;
   }
 
