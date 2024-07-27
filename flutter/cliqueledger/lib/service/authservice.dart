@@ -39,7 +39,7 @@ class Authservice {
   FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   bool isAuthResultValid(TokenResponse? result) {
-    return result != null && result.idToken != null;
+    return result != null && result.idToken != null && result.accessToken != null;
   }
 
   init() async {
