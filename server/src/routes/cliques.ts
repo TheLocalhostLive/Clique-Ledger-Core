@@ -1,46 +1,13 @@
-import { Router, Request, Response, response } from 'express';
+import { Router, Request, Response } from 'express';
 import {  PrismaClient } from '@prisma/client';
-import { boolean, number } from 'zod';
 import { error } from 'console';
 import checkAdmin from '../middlewares/checkAdmin';
+import generateCliqueId from '../controllers/generateCliqueId';
+import generateMemberId from '../controllers/generateMemberId';
 
 const prisma = new PrismaClient()
 
 const router = Router();
-
-//generate a new clique id
-async function generateCliqueId() {
-  const latestClique = await prisma.clique.findFirst({
-    orderBy: { clique_id: 'desc' },
-  });
-
-  let newId;
-  if (latestClique) {
-    const latestIdNumber = parseInt(latestClique.clique_id.slice(1));
-    newId = `C${(latestIdNumber + 1).toString().padStart(6, '0')}`;
-  } else {
-    newId = 'C000001';
-  }
-
-  return newId;
-}
-
-//generater a new member id
-async function generateMemberId() {
-  const latestUser = await prisma.member.findFirst({
-    orderBy: { member_id: 'desc' },
-  });
-
-  let newId;
-  if (latestUser) {
-    const latestIdNumber = parseInt(latestUser.member_id.slice(1));
-    newId = `M${(latestIdNumber + 1).toString().padStart(7, '0')}`;
-  } else {
-    newId = 'M0000001';
-  }
-
-  return newId;
-}
 
 // get all cliques
 router.get('/', async(req: Request, res: Response) => {

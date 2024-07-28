@@ -1,36 +1,19 @@
-import { Router, Request, Response, response } from 'express';
+import { Router, Request, Response } from 'express';
 import {  PrismaClient } from '@prisma/client';
-import { boolean, number } from 'zod';
-import { error } from 'console';
 import checkUser from '../middlewares/checkUser';
+import generateUserId from '../controllers/generateUserId';
 
 const prisma = new PrismaClient()
 
 const router = Router();
 
-//generate user id
-async function generateUserId() {
-    const latestUser = await prisma.user.findFirst({
-      orderBy: { user_id: 'desc' },
-    });
-  
-    let newId;
-    if (latestUser) {
-      const latestIdNumber = parseInt(latestUser.user_id.slice(1));
-      newId = `U${(latestIdNumber + 1).toString().padStart(6, '0')}`;
-    } else {
-      newId = 'U000001';
-    }
-  
-    return newId;
-  }
 
 //get all users
 router.get('/', async (req: Request, res: Response) => {
     try {
         const users = await prisma.user.findMany();
         const userArray = [];
-        for(let user of users) {
+        for(const user of users) {
             userArray.push({
                 id: user.user_id,
                 name: user.user_name,

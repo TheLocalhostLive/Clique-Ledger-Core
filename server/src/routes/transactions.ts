@@ -1,38 +1,21 @@
-import { Router, Request, Response, response } from 'express';
+import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { boolean, date, number } from 'zod';
-import { error } from 'console';
 import verifySender from "../middlewares/verifySender";
+import generateTransactionId from '../controllers/generateTransactionId';
 
 const prisma = new PrismaClient();
 const router = Router();
 
-//create a new transaction id
-async function generateTransactionId() {
-  const latestTransaction = await prisma.transaction.findFirst({
-    orderBy: { transaction_id: 'desc' },
-  });
-
-  let newId;
-  if (latestTransaction) {
-    const latestIdNumber = parseInt(latestTransaction.transaction_id.slice(1));
-    newId = `T${(latestIdNumber + 1).toString().padStart(9, '0')}`;
-  } else {
-    newId = 'T000000001';
-  }
-
-  return newId;
-}
 
 // Get all transactions
 router.get('/', async (req: Request, res: Response) => {
   try {
-    let { sender, receiver, clique, from_date, to_date } = req.query;
+    const { sender, receiver, clique, from_date, to_date } = req.query;
     const limit = 10;
     const offset = 2;
 
     // Construct the where condition
-    let where: { [key: string]: any } = {};
+    const where: { [key: string]: any } = {};
 
     if (sender) {
       where.sender_id = sender;
@@ -47,7 +30,7 @@ router.get('/', async (req: Request, res: Response) => {
         where.AND = [];
       }
 
-      let dateFilter: { [key: string]: Date } = {};
+      const dateFilter: { [key: string]: Date } = {};
 
       if (from_date && typeof from_date === 'string') {
         dateFilter.gte = new Date(from_date);
@@ -76,7 +59,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Fetch transactions based on constructed where condition
-    let transactions = await prisma.transaction.findMany({
+    const transactions = await prisma.transaction.findMany({
       where: where,
       take: limit,
       skip: offset,
@@ -105,7 +88,7 @@ router.post('/', async (req: Request, res: Response) => {
     const des = req.body.description;
     const cliqueId = req.body.cliqueId;
 
-    let newTransaction = await prisma.transaction.create({
+    const newTransaction = await prisma.transaction.create({
       data: {
         transaction_id: await generateTransactionId(),
         transaction_type: type,
@@ -278,7 +261,7 @@ router.post('/:transactionId/participants', verifySender, async (req: Request, r
     }
     const cliqueId = checkTransaction?.clique_id;
     const members = req.body;
-    for (let member of members) {
+    for (const member of members) {
       const memberId = member.id;
       const findMember = await prisma.member.findUnique({
         where: {
@@ -326,7 +309,7 @@ router.delete("./:transaction_id/participants", verifySender, async (req: Reques
       });
     }
     const members = req.body;
-    for(let memberId of members) {
+    for(const memberId of members) {
       const findMember = await prisma.spend.findMany({
         where:{
           member_id: memberId,
