@@ -1,3 +1,4 @@
+import 'package:cliqueledger/pages/dashboard.dart';
 import 'package:cliqueledger/pages/ledgerPage.dart';
 import 'package:flutter/material.dart';
 void main() {
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Ledgerpage()
+      home: Dashboard()
     );
   }
 }

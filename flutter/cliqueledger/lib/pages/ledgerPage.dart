@@ -1,5 +1,7 @@
+import 'package:cliqueledger/api_helpers/fetchTransactions.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
 import 'package:flutter/material.dart';
+import 'package:cliqueledger/models/transaction.dart';
 
 class Ledgerpage extends StatefulWidget {
   const Ledgerpage({super.key});
@@ -9,26 +11,98 @@ class Ledgerpage extends StatefulWidget {
 }
 
 class _LedgerpageState extends State<Ledgerpage> {
-  final List<Transaction> transactions = [
-    Transaction(
-      id: 't1',
-      recipient: 'Alice',
-      amount: 50.0,
-      date: DateTime.now(),
-      description: 'Payment for dinner',
-    ),
-    Transaction(
-      id: 't2',
-      recipient: 'Bob',
-      amount: 20.0,
-      date: DateTime.now(),
-      description: 'Coffee meeting',
-    ),
-    // Add more transactions here
-  ];
+  final TransactionList transactionList = TransactionList();
+  bool isLoading = true;
+  @override
+  void initState(){
+    super.initState();
+    fetchTransactions();
+  }
+  Future<void> fetchTransactions() async {
+    await transactionList.fetchData();
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   void _createTransaction(BuildContext context) {
-    // Implement your transaction creation logic here
+     showDialog(
+  context: context,
+  builder: (BuildContext context) {
+    bool withFunds = false;
+    final TextEditingController amountController = TextEditingController();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setState) {
+        return AlertDialog(
+          title: const Text('Create Clique'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextFormField(
+                  decoration: const InputDecoration(hintText: "Enter Clique Name"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Clique Name cannot be empty";
+                    }
+                    return null;
+                  },
+                ),
+                Row(
+                  children: <Widget>[
+                    Checkbox(
+                      value: withFunds,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          withFunds = value ?? false;
+                        });
+                      },
+                    ),
+                    const Text("With funds"),
+                  ],
+                ),
+                if (withFunds)
+                  TextFormField(
+                    controller: amountController,
+                    decoration: const InputDecoration(hintText: "Enter Amount"),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Amount cannot be empty";
+                      }
+                      return null;
+                    },
+                  ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Create'),
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  // Handle the create action
+                  String amount = amountController.text;
+                  // Use the amount if withFunds is true
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  },
+); 
   }
 
   @override
@@ -47,9 +121,11 @@ class _LedgerpageState extends State<Ledgerpage> {
             Expanded(
               child: TabBarView(
                 children: [
-                  transactions.isEmpty
-                      ? Center(child: Text("No Transaction to show"))
-                      : TransactionsTab(transactions: transactions),
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : transactionList.transactions.isEmpty
+                          ? const Center(child: Text("No Transaction to show"))
+                          : TransactionsTab(transactions: transactionList.transactions),
                   Center(child: Text('Media')),
                   Center(child: Text('Report')),
                 ],
@@ -85,7 +161,7 @@ class TransactionsTab extends StatelessWidget {
                 children: <Widget>[
                   // Add your transaction details widgets here
                   Text(
-                    '${t.recipient} - \$${t.amount.toStringAsFixed(2)} paid to ',
+                    '${t.sender} - \$${t.amount.toStringAsFixed(2)} paid to ${t.receiver}',
                     style: TextStyle(fontSize: 16.0),
                   ),
                   ElevatedButton(
@@ -152,7 +228,7 @@ class TransactionsTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${tx.recipient} - \$${tx.amount.toStringAsFixed(2)}',
+                        '${tx.sender} - \$${tx.amount.toStringAsFixed(2)}',
                         style: TextStyle(fontSize: 16.0),
                       ),
                       const SizedBox(height: 4.0),
@@ -175,20 +251,4 @@ class TransactionsTab extends StatelessWidget {
       }).toList(),
     );
   }
-}
-
-class Transaction {
-  final String id;
-  final String recipient;
-  final double amount;
-  final DateTime date;
-  final String description;
-
-  Transaction({
-    required this.id,
-    required this.recipient,
-    required this.amount,
-    required this.date,
-    required this.description,
-  });
 }
