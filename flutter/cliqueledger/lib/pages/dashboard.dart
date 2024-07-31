@@ -147,6 +147,7 @@ class _DashboardState extends State<Dashboard> {
                             )
                           : LedgerTab(
                               ledgerList: activeLedgerContentList.ledgerList),
+                        Center(child: Text("Nothing To show"),)
 
                   // isFinishLedgerLoading
                   // ? const Center(child: CircularProgressIndicator(),)
