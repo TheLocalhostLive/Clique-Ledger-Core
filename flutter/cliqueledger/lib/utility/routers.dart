@@ -1,5 +1,5 @@
 
-import 'package:cliqueledger/pages/dashbord.dart';
+import 'package:cliqueledger/pages/dashboard.dart';
 import 'package:cliqueledger/pages/login.dart';
 import 'package:cliqueledger/pages/signup.dart';
 import 'package:cliqueledger/pages/welcome_page.dart';
@@ -41,7 +41,7 @@ class Routers {
         GoRoute(
           path: '/dashboard',
           name: 'Dashboard',
-          builder: (context, state) => const Dashbord(),
+          builder: (context, state) => const Dashboard(),
         ),
       ],
     );
