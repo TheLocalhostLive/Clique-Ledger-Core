@@ -1,4 +1,3 @@
-import 'package:cliqueledger/pages/dashboard.dart';
 import 'package:cliqueledger/service/authservice.dart';
 import 'package:cliqueledger/utility/routers.dart';
 import 'package:flutter/material.dart';
@@ -16,18 +15,17 @@ Future<void> main() async {
     // Handle any exceptions thrown during initialization
     print("Error during initialization: $e");
   }
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Clique Ledger',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Dashboard()
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+       routerConfig: Routers.routers(true),
     );
   }
 }
