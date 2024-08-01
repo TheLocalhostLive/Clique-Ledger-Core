@@ -3,7 +3,9 @@ import 'package:cliqueledger/models/member.dart';
 import 'package:cliqueledger/providers/cliqueProvider.dart';
 import 'package:cliqueledger/providers/userProvider.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
+import 'package:cliqueledger/utility/routers_constant.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -136,7 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed:(){},
+                      onPressed:(){context.go(RoutersConstants.ADD_MEMBER_ROUTE);},
                       child: Text("Add")
                     )
                   ],
