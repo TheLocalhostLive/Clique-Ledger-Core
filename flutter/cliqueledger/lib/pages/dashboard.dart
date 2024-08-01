@@ -1,8 +1,11 @@
 import 'package:cliqueledger/api_helpers/fetchActiveLedgerContent.dart';
-import 'package:cliqueledger/models/ledger.dart';
+import 'package:cliqueledger/models/cliqeue.dart';
+import 'package:cliqueledger/providers/cliqueProvider.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
 import 'package:flutter/material.dart';
 import 'package:cliqueledger/service/authservice.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -168,7 +171,7 @@ class _DashboardState extends State<Dashboard> {
 }
 
 class LedgerTab extends StatelessWidget {
-  final List<Ledger> ledgerList;
+  final List<Clique> ledgerList;
   const LedgerTab({required this.ledgerList});
 
   @override
@@ -186,7 +189,10 @@ class LedgerTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(5)),
               child: InkWell(
                   borderRadius: BorderRadius.circular(5),
-                  onTap: () => {},// Load Transaction
+                  onTap: (){
+                      context.read<CliqueProvider>().setClique(ls);
+                      context.go('/ledger');
+                  },
                   child: Container(
                     decoration: BoxDecoration(
                         color: Color.fromARGB(255, 213, 225, 236),
@@ -195,7 +201,7 @@ class LedgerTab extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(15, 20, 5, 10),
                       child: Container(
                         child: Text(
-                          '${ls.ledgerName}',
+                          '${ls.cliqeueName}',
                           style: TextStyle(
                             fontSize: 25.0,
                           ),
