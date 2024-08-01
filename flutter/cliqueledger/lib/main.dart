@@ -25,9 +25,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 
-    return MaterialApp(
-      home: Ledgerpage(),
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+       routerConfig: Routers.routers(true),
     );
   }
 }
