@@ -1,3 +1,5 @@
+import 'package:cliqueledger/pages/addMember.dart';
+import 'package:cliqueledger/pages/ledgerPage.dart';
 import 'package:cliqueledger/service/authservice.dart';
 import 'package:cliqueledger/utility/routers.dart';
 import 'package:flutter/material.dart';
@@ -23,9 +25,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-       routerConfig: Routers.routers(true),
+    // 
+    return MaterialApp(
+      home: Ledgerpage(),
     );
   }
 }

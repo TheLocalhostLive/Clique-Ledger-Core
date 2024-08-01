@@ -2,8 +2,10 @@ import 'package:cliqueledger/api_helpers/fetchTransactions.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
 import 'package:flutter/material.dart';
 import 'package:cliqueledger/models/transaction.dart';
+import 'package:go_router/go_router.dart';
 
 class Ledgerpage extends StatefulWidget {
+
   const Ledgerpage({super.key});
 
   @override
@@ -110,7 +112,32 @@ class _LedgerpageState extends State<Ledgerpage> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: const GradientAppBar(title: "Clique Ledger"),
+        appBar:  AppBar(
+          title: Text("Clique Ledger",style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold ),
+          ),
+          actions: <Widget>[
+            IconButton(
+              onPressed: ()=>{context.go("/ledger/settings/:")},
+              icon: Icon(Icons.settings,
+              color: Colors.white,),
+            )
+          ],
+          flexibleSpace: Container(
+          
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF5588A3), // Note the use of 0xFF prefix for hex colors
+                Color(0xFF145374),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
         body: Column(
           children: [
             TabBar(tabs: [
