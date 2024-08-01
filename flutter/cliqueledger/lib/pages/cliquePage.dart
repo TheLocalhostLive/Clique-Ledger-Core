@@ -2,6 +2,7 @@ import 'package:cliqueledger/api_helpers/fetchTransactions.dart';
 import 'package:cliqueledger/models/cliqeue.dart';
 import 'package:cliqueledger/providers/cliqueProvider.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
+import 'package:cliqueledger/utility/routers_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:cliqueledger/models/transaction.dart';
 import 'package:go_router/go_router.dart';
@@ -128,7 +129,7 @@ class _CliquepageState extends State<Cliquepage> {
           ),
           actions: <Widget>[
             IconButton(
-              onPressed: ()=>{context.go("/ledger/settings/")},
+              onPressed: ()=>{context.go(RoutersConstants.CLIQUE_SETTINGS_ROUTE)},
               icon: Icon(Icons.settings,
               color: Colors.white,),
             )

@@ -2,6 +2,7 @@ import 'package:cliqueledger/api_helpers/fetchActiveLedgerContent.dart';
 import 'package:cliqueledger/models/cliqeue.dart';
 import 'package:cliqueledger/providers/cliqueProvider.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
+import 'package:cliqueledger/utility/routers_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:cliqueledger/service/authservice.dart';
 import 'package:go_router/go_router.dart';
@@ -191,7 +192,7 @@ class LedgerTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(5),
                   onTap: (){
                       context.read<CliqueProvider>().setClique(ls);
-                      context.go('/ledger');
+                      context.go(RoutersConstants.CLIQUE_ROUTE);
                   },
                   child: Container(
                     decoration: BoxDecoration(
