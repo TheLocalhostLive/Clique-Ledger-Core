@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import {  PrismaClient } from '@prisma/client';
-import { boolean, number } from 'zod';
 import { error } from 'console';
+import checkAdmin from '../middlewares/checkAdmin';
+import generateCliqueId from '../controllers/generateCliqueId';
+import generateMemberId from '../controllers/generateMemberId';
 
 const prisma = new PrismaClient()
 
@@ -34,10 +36,11 @@ router.post('/', async (req: Request, res: Response) => {
       fund_flag = false;
     }
     //create new clique
+    const newCliqueId = await generateCliqueId();
     const newClique = await prisma.clique.create({
       data: {
+        clique_id: newCliqueId,
         fund: funds,
-        created_at: new Date(),
         is_fund: fund_flag,
         clique_name: name,
       },
@@ -57,12 +60,7 @@ router.post('/', async (req: Request, res: Response) => {
 // GET a single clique by ID
 router.get('/:cliqueId', async (req: Request, res: Response) => {
   try {
-    const cliqueId: number = parseInt(req.params.cliqueId);
-
-    if (isNaN(cliqueId)) {
-      res.status(400).json({ field_name: 'cliqueId', status: 'INVALID' });
-      return;
-    }
+    const cliqueId: string = req.params.cliqueId;
 
     const clique = await prisma.clique.findUnique({
       where: {
@@ -88,12 +86,8 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
 // Update clique name using clique id
 router.patch('/:cliqueId', async (req: Request, res: Response) => {
   try{
-    const cliqueId : number = parseInt(req.params.cliqueId);
+    const cliqueId : string = req.params.cliqueId;
     const name : string = req.body.name;
-
-    if (isNaN(cliqueId)) {
-      return res.status(400).json({ field_name: 'cliqueId', status: 'INVALID' });
-    }
 
     const existingClique = await prisma.clique.findUnique({
       where: {
@@ -106,9 +100,8 @@ router.patch('/:cliqueId', async (req: Request, res: Response) => {
     }
 
     // Perform partial update if name is provided
-    let updatedClique;
     if (name) {
-      updatedClique = await prisma.clique.update({
+      await prisma.clique.update({
         where: {
           clique_id: cliqueId,
         },
@@ -128,11 +121,7 @@ router.patch('/:cliqueId', async (req: Request, res: Response) => {
 // Delete a clique using clique id
 router.delete('/:cliqueId', async (req: Request, res: Response) => {
   try{
-    const cliqueId : number = parseInt(req.params.cliqueId);
-    if (isNaN(cliqueId)) {
-      res.status(400).json({ field_name: 'cliqueId', status: 'INVALID' });
-      return;
-    }
+    const cliqueId : string = req.params.cliqueId;
 
     const deletedClique = await prisma.clique.delete({
       where: {
@@ -154,39 +143,46 @@ router.delete('/:cliqueId', async (req: Request, res: Response) => {
 });
 
 //add members in a clique
-router.post('/:cliqueId/members/:userId', async(req: Request, res: Response) => {
+router.post('/:cliqueId/members/', checkAdmin, async(req: Request, res: Response) => {
   try{
-    const cliqueId : number = parseInt(req.params.cliqueId);
-    const userId : number = parseInt(req.params.userId);
+    const cliqueId : string = req.params.cliqueId;
+    const userIds: string[] = req.body;
 
-    const memberName : string = req.body.name;
-    const funds : number = parseFloat(req.body.funds);
-
-    const user = await prisma.user.findUnique({
-      where: { user_id: userId }
-    });
-
-    if (!user) {
-      res.status(404).json({ status: 'FAILURE', message: 'User not found' });
+    // Check if userIds is an array
+    if (!Array.isArray(userIds)) {
+      res.status(400).json({
+        status: 'FAILURE',
+        message: 'Invalid input format. Expected an array of user IDs.',
+      });
       return;
     }
 
-    // Add the member to the clique
-    const newMember = await prisma.member.create({
-      data: {
-        user_id: user.user_id,
-        clique_id: cliqueId,
-        is_admin: false,
-        joined_at: new Date(),
-        amount: funds,
-        due: false
-      }
-    });
+    // Initialize an array to store the new members
+    const newMembers = [];
+
+    // Loop through the user IDs and add each to the clique
+    for (const userId of userIds) {
+      const newMemberId = await generateMemberId();
+
+      const newMember = await prisma.member.create({
+        data: {
+          member_id: newMemberId,
+          user_id: userId,
+          clique_id: cliqueId,
+          is_admin: false,
+          joined_at: new Date(),
+          amount: 0,
+          due: false,
+        },
+      });
+
+      newMembers.push(newMember);
+    }
 
     res.status(201).json({
       status: 'SUCCESS',
       message: 'Members added successfully',
-      data: newMember
+      data: newMembers,
     });
   } catch (err) {
     console.error(err);
@@ -196,5 +192,33 @@ router.post('/:cliqueId/members/:userId', async(req: Request, res: Response) => 
 });
 
 // remove a member
-router.delete('')
+router.delete('/clique/:cliqueId/members/', checkAdmin, async (req: Request, res: Response) =>{
+  try {
+    const cliqueId : string = req.params.cliqueId;
+    const userIds: string[] = req.body;
+
+    // Check if userIds is an array
+    if (!Array.isArray(userIds)) {
+      res.status(400).json({
+        status: 'FAILURE',
+        message: 'Invalid input format. Expected an array of user IDs.',
+      });
+      return;
+    }
+
+    for (const userId of userIds) {
+      await prisma.member.delete({
+        where: {member_id: userId},
+      });
+    }
+    res.status(204).json({
+      status: 'SUCCESS',
+      message: 'Members removed successfully',
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ status: 'FAILURE', message: 'An error occurred while removing members' });
+  }
+});
+
 export default router;
