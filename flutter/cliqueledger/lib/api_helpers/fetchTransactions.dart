@@ -32,7 +32,7 @@ class TransactionList {
     // // Add more transactions here
   ];
 
-  Future<void> fetchData() async {
+  Future<void> fetchData(String cliqeuId) async {
     final uriGet = Uri.parse("http://example.com/api/transactions");
     try {
       final response = await http.get(uriGet);

@@ -1,8 +1,13 @@
 import 'package:cliqueledger/pages/addMember.dart';
-import 'package:cliqueledger/pages/ledgerPage.dart';
+import 'package:cliqueledger/pages/cliquePage.dart';
+import 'package:cliqueledger/pages/dashboard.dart';
+import 'package:cliqueledger/pages/CliqueSettingsPage.dart';
+import 'package:cliqueledger/providers/cliqueProvider.dart';
+import 'package:cliqueledger/providers/userProvider.dart';
 import 'package:cliqueledger/service/authservice.dart';
 import 'package:cliqueledger/utility/routers.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
@@ -17,7 +22,16 @@ Future<void> main() async {
     // Handle any exceptions thrown during initialization
     print("Error during initialization: $e");
   }
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CliqueProvider()),
+        ChangeNotifierProvider(create: (_)=>userProvider())
+        // You can add other providers here as needed
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -1,5 +1,6 @@
 
 import 'package:cliqueledger/pages/dashboard.dart';
+import 'package:cliqueledger/pages/cliquePage.dart';
 import 'package:cliqueledger/pages/login.dart';
 import 'package:cliqueledger/pages/signup.dart';
 import 'package:cliqueledger/pages/welcome_page.dart';
@@ -43,6 +44,11 @@ class Routers {
           name: 'Dashboard',
           builder: (context, state) => const Dashboard(),
         ),
+        GoRoute(
+          path: '/ledger',
+          name: 'Ledger',
+          builder: (context,state)=> Cliquepage()
+        )
       ],
     );
     return router;

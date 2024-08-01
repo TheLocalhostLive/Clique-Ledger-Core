@@ -1,18 +1,21 @@
 import 'package:cliqueledger/api_helpers/fetchTransactions.dart';
+import 'package:cliqueledger/models/cliqeue.dart';
+import 'package:cliqueledger/providers/cliqueProvider.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
 import 'package:flutter/material.dart';
 import 'package:cliqueledger/models/transaction.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-class Ledgerpage extends StatefulWidget {
+class Cliquepage extends StatefulWidget {
 
-  const Ledgerpage({super.key});
+  const Cliquepage({super.key});
 
   @override
-  State<Ledgerpage> createState() => _LedgerpageState();
+  State<Cliquepage> createState() => _CliquepageState();
 }
 
-class _LedgerpageState extends State<Ledgerpage> {
+class _CliquepageState extends State<Cliquepage> {
   final TransactionList transactionList = TransactionList();
   bool isLoading = true;
   @override
@@ -20,11 +23,16 @@ class _LedgerpageState extends State<Ledgerpage> {
     super.initState();
     fetchTransactions();
   }
-  Future<void> fetchTransactions() async {
-    await transactionList.fetchData();
-    setState(() {
-      isLoading = false;
-    });
+ Future<void> fetchTransactions() async {
+    final clique = context.read<CliqueProvider>().currentClique;
+    if (clique != null) {
+      await transactionList.fetchData(clique.cliqueId); // Pass the cliqueId here
+      setState(() {
+        isLoading = false;
+      });
+    } else {
+      // Handle the case where clique is null, if necessary
+    }
   }
 
   void _createTransaction(BuildContext context) {
@@ -109,6 +117,7 @@ class _LedgerpageState extends State<Ledgerpage> {
 
   @override
   Widget build(BuildContext context) {
+    
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -119,7 +128,7 @@ class _LedgerpageState extends State<Ledgerpage> {
           ),
           actions: <Widget>[
             IconButton(
-              onPressed: ()=>{context.go("/ledger/settings/:")},
+              onPressed: ()=>{context.go("/ledger/settings/")},
               icon: Icon(Icons.settings,
               color: Colors.white,),
             )
@@ -172,7 +181,7 @@ class _LedgerpageState extends State<Ledgerpage> {
 
 class TransactionsTab extends StatelessWidget {
   final List<Transaction> transactions;
-
+  
   const TransactionsTab({required this.transactions});
 
   void _checkTransaction(BuildContext context, Transaction t) {
