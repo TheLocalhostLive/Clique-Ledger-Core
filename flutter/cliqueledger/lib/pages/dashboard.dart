@@ -131,7 +131,34 @@ class _DashboardState extends State<Dashboard> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: const GradientAppBar(title: "Clique Ledger"),
+        appBar:  AppBar(
+        actions: <Widget>[
+          IconButton(
+            onPressed: () async{
+              await Authservice.instance.logout();
+            },
+             icon: Icon(IconData(0xe3b3,fontFamily: 'MaterialIcons')),
+             color: Colors.white,
+          )
+        ],
+        title: Text("Clique Ledger",style: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold ),),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF5588A3), // Note the use of 0xFF prefix for hex colors
+              Color(0xFF145374),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          
+          ),
+        
+        ),
+      ),
         body: Column(
           children: [
             TabBar(tabs: [
