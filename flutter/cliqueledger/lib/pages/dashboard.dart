@@ -63,7 +63,8 @@ class _DashboardState extends State<Dashboard> {
                   children: <Widget>[
                     TextFormField(
                       decoration:
-                          const InputDecoration(hintText: "Enter Clique Name"),
+                          const InputDecoration(
+                            hintText: "Enter Clique Name",),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Clique Name cannot be empty";
@@ -113,6 +114,7 @@ class _DashboardState extends State<Dashboard> {
                     if (formKey.currentState!.validate()) {
                       // Handle the create action
                       String amount = amountController.text;
+                      
                       // Use the amount if withFunds is true
                       Navigator.of(context).pop();
                     }
@@ -172,12 +174,12 @@ class _DashboardState extends State<Dashboard> {
                       ? const Center(
                           child: CircularProgressIndicator(),
                         )
-                      : activeLedgerContentList.ledgerList.isEmpty
+                      : activeLedgerContentList.activeCliqueList.isEmpty
                           ? const Center(
                               child: Text("No Ledgers to show"),
                             )
                           : LedgerTab(
-                              ledgerList: activeLedgerContentList.ledgerList),
+                              cliqueList: activeLedgerContentList.activeCliqueList),
                         Center(child: Text("Nothing To show"),)
 
                   // isFinishLedgerLoading
@@ -192,6 +194,7 @@ class _DashboardState extends State<Dashboard> {
           onPressed: () => _createClique(context),
           tooltip: 'Create Clique',
           child: const Icon(Icons.add),
+          backgroundColor:Color.fromARGB(255, 165, 229, 244),
         ),
       ),
     );
@@ -199,13 +202,13 @@ class _DashboardState extends State<Dashboard> {
 }
 
 class LedgerTab extends StatelessWidget {
-  final List<Clique> ledgerList;
-  const LedgerTab({required this.ledgerList});
+  final List<Clique> cliqueList;
+  const LedgerTab({required this.cliqueList});
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      children: ledgerList.map((ls) {
+      children: cliqueList.map((clique) {
         return Center(
           child: Container(
             //margin: const EdgeInsets.fromLTRB(5, 5, 5, 5),
@@ -218,7 +221,7 @@ class LedgerTab extends StatelessWidget {
               child: InkWell(
                   borderRadius: BorderRadius.circular(5),
                   onTap: (){
-                      context.read<CliqueProvider>().setClique(ls);
+                      context.read<CliqueProvider>().setClique(clique);
                       context.go(RoutersConstants.CLIQUE_ROUTE);
                   },
                   child: Container(
@@ -229,7 +232,7 @@ class LedgerTab extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(15, 20, 5, 10),
                       child: Container(
                         child: Text(
-                          '${ls.cliqeueName}',
+                          '${clique.name}',
                           style: TextStyle(
                             fontSize: 25.0,
                           ),

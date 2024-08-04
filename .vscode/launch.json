@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter (lib/models/member.dart)",
+            "type": "dart",
+            "request": "launch",
+            "cwd": "flutter/cliqueledger",
+            "program": "lib/models/member.dart"
+        }
+    ]
+}

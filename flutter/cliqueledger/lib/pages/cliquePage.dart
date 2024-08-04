@@ -27,7 +27,7 @@ class _CliquepageState extends State<Cliquepage> {
  Future<void> fetchTransactions() async {
     final clique = context.read<CliqueProvider>().currentClique;
     if (clique != null) {
-      await transactionList.fetchData(clique.cliqueId); // Pass the cliqueId here
+      await transactionList.fetchData(clique.id); // Pass the cliqueId here
       setState(() {
         isLoading = false;
       });
