@@ -213,7 +213,7 @@ class LedgerTab extends StatelessWidget {
           child: Container(
             //margin: const EdgeInsets.fromLTRB(5, 5, 5, 5),
             width: MediaQuery.of(context).size.width * 0.95,
-            height: 80,
+            height: 90,
             child: Card(
               elevation: 10.0,
               shape: RoundedRectangleBorder(
@@ -229,13 +229,24 @@ class LedgerTab extends StatelessWidget {
                         color: Color.fromARGB(255, 213, 225, 236),
                         borderRadius: BorderRadius.circular(5)),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 20, 5, 10),
+                      padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
                       child: Container(
-                        child: Text(
-                          '${clique.name}',
-                          style: TextStyle(
-                            fontSize: 25.0,
-                          ),
+                        child: Column(
+                          children: [
+                              Text('${clique.name}',
+                                  style: TextStyle(
+                                   fontSize: 22.0,
+                                 ),
+                              ),
+                              Text(
+                                '${clique.latestTransaction.sender}-${clique.latestTransaction.amount} \$',
+                                 style: TextStyle(color: Colors.grey,fontSize: 12),
+                              ),
+                               Text(
+                                  '${clique.latestTransaction.date}',
+                                   style: TextStyle(color: Colors.grey,fontSize: 10),
+                               )
+                          ],
                         ),
                       ),
                     ),
