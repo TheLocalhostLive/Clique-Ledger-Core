@@ -1,9 +1,23 @@
 class User{
-  final String userName;
-  final String gender;
+  final String name;
+  final String id;
+  final String phone;
+  final String email;
 
   User({
-    required this.userName,
-    required this.gender
+    required this.name,
+    required this.id,
+    required this.phone,
+    required this.email
   });
+
+  factory User.fromJson(Map<String,dynamic> json){
+    return User(    
+      name: json['name'] ,
+      id: json['id'] ,
+      phone: json['phone'] ,
+      email: json['email']
+      );
+  }
+
 }
