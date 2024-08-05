@@ -10,19 +10,51 @@ const prisma = new PrismaClient()
 const router = Router();
 
 // get all cliques
-router.get('/', async(req: Request, res: Response) => {
-  try{
-    const allRecords = await prisma.clique.findMany();
-    if(allRecords.length === 0) {
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const allRecords = await prisma.clique.findMany({
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                user_id: true,
+                user_name: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (allRecords.length === 0) {
       console.log("No data");
       res.status(200).json("No data found");
       return;
     }
-    res.status(200).json(allRecords)
-    return;
-  } catch(err) {
+
+    const transformedRecords = allRecords.map(clique => ({
+      clique_id: clique.clique_id,
+      clique_name: clique.clique_name,
+      admins: clique.members
+        .filter(member => member.is_admin) // Filter admins
+        .map(member => ({
+          member_id: member.user_id,
+          member_name: member.user.user_name
+        })),
+      members: clique.members.map(member => ({
+        member_id: member.user_id,
+        member_name: member.user.user_name
+      })),
+      is_fund: clique.is_fund,
+      fund: clique.fund,
+      isActive: clique.is_active
+    }));
+
+    res.status(200).json(transformedRecords);
+  } catch (err) {
     console.log(err);
-    res.status(500).json({error: "An error occurred while fetching records"});
+    res.status(500).json({ error: "An error occurred while fetching records" });
   }
 });
 
@@ -31,11 +63,9 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const name: string = req.body.name;
     const funds: number = req.body.funds;
-    let fund_flag: boolean = true;
-    if(funds == 0) {
-      fund_flag = false;
-    }
-    //create new clique
+    const fund_flag: boolean = funds !== 0;
+
+    // Create new clique
     const newCliqueId = await generateCliqueId();
     const newClique = await prisma.clique.create({
       data: {
@@ -45,12 +75,39 @@ router.post('/', async (req: Request, res: Response) => {
         clique_name: name,
       },
       include: {
-        members: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                user_id: true,
+                user_name: true
+              }
+            }
+          }
+        }
       },
     });
 
-    res.status(201).json(newClique);
-  } catch(err) {
+    const transformedClique = {
+      clique_id: newClique.clique_id,
+      clique_name: newClique.clique_name,
+      admins: newClique.members
+        .filter(member => member.is_admin)
+        .map(member => ({
+          member_id: member.user_id,
+          member_name: member.user.user_name
+        })),
+      members: newClique.members.map(member => ({
+        member_id: member.user_id,
+        member_name: member.user.user_name
+      })),
+      isFund: newClique.is_fund,
+      fund: newClique.fund,
+      isActive: newClique.is_active
+    };
+
+    res.status(201).json(transformedClique);
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'An error occurred while creating the clique' });
   }
@@ -67,7 +124,16 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
         clique_id: cliqueId,
       },
       include: {
-        members: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                user_id: true,
+                user_name: true
+              }
+            }
+          }
+        }
       },
     });
 
@@ -76,7 +142,25 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(200).json(clique);
+    const transformedClique = {
+      clique_id: clique.clique_id,
+      clique_name: clique.clique_name,
+      admins: clique.members
+        .filter(member => member.is_admin) // Filter admins
+        .map(member => ({
+          member_id: member.user_id,
+          member_name: member.user.user_name
+        })),
+      members: clique.members.map(member => ({
+        member_id: member.user_id,
+        member_name: member.user.user_name
+      })),
+      isFund: clique.is_fund,
+      fund: clique.fund,
+      isActive: clique.is_active
+    };
+
+    res.status(200).json(transformedClique);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'An error occurred while fetching the clique' });
@@ -143,9 +227,9 @@ router.delete('/:cliqueId', async (req: Request, res: Response) => {
 });
 
 //add members in a clique
-router.post('/:cliqueId/members/', checkAdmin, async(req: Request, res: Response) => {
-  try{
-    const cliqueId : string = req.params.cliqueId;
+router.post('/:cliqueId/members/', checkAdmin, async (req: Request, res: Response) => {
+  try {
+    const cliqueId: string = req.params.cliqueId;
     const userIds: string[] = req.body;
 
     // Check if userIds is an array
@@ -162,21 +246,54 @@ router.post('/:cliqueId/members/', checkAdmin, async(req: Request, res: Response
 
     // Loop through the user IDs and add each to the clique
     for (const userId of userIds) {
-      const newMemberId = await generateMemberId();
-
-      const newMember = await prisma.member.create({
-        data: {
-          member_id: newMemberId,
-          user_id: userId,
-          clique_id: cliqueId,
-          is_admin: false,
-          joined_at: new Date(),
-          amount: 0,
-          due: false,
-        },
+      // Fetch the user details to verify existence
+      const user = await prisma.user.findUnique({
+        where: { user_id: userId },
+        select: { user_id: true, user_name: true }
       });
 
-      newMembers.push(newMember);
+      if (user) {
+        const newMemberId = await generateMemberId();
+
+        // Create the new member
+        const newMember = await prisma.member.create({
+          data: {
+            member_id: newMemberId,
+            user_id: userId,
+            clique_id: cliqueId,
+            is_admin: false,
+            joined_at: new Date(),
+            amount: 0,
+            due: false,
+          },
+        });
+
+        newMembers.push({
+          member_id: newMember.member_id,
+          user_id: newMember.user_id,
+          clique_id: newMember.clique_id,
+          is_admin: newMember.is_admin,
+          joined_at: newMember.joined_at,
+          amount: newMember.amount,
+          due: newMember.due,
+          member_name: user.user_name // Include member name
+        });
+      }
+      else{
+        res.status(404).json({
+          status: 'FAILURE',
+          message: `User with user_id ${userId} not found`,
+        });
+        return;
+      }
+    }
+
+    if (newMembers.length === 0) {
+      res.status(404).json({
+        status: 'FAILURE',
+        message: 'No valid users found to add to the clique.',
+      });
+      return;
     }
 
     res.status(201).json({
@@ -187,9 +304,9 @@ router.post('/:cliqueId/members/', checkAdmin, async(req: Request, res: Response
   } catch (err) {
     console.error(err);
     res.status(500).json({ status: 'FAILURE', message: 'An error occurred while adding members' });
-    return;
   }
 });
+
 
 // remove a member
 router.delete('/clique/:cliqueId/members/', checkAdmin, async (req: Request, res: Response) =>{
