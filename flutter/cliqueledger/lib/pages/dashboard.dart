@@ -1,5 +1,7 @@
-import 'package:cliqueledger/api_helpers/fetchActiveLedgerContent.dart';
+import 'package:cliqueledger/api_helpers/createCliquePost.dart';
+import 'package:cliqueledger/api_helpers/fetchCliqeue.dart';
 import 'package:cliqueledger/models/cliqeue.dart';
+import 'package:cliqueledger/models/cliquePostSchema.dart';
 import 'package:cliqueledger/providers/cliqueProvider.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
 import 'package:cliqueledger/utility/routers_constant.dart';
@@ -16,30 +18,23 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  final ActiveLedgerContentList activeLedgerContentList =
-      ActiveLedgerContentList();
-
-  bool isActiveLeedgerLoading = true;
-  bool isFinishLedgerLoading = true;
+  final CreateCliquePost createCliquePost = CreateCliquePost();
+  final CliqueList cliqueList = CliqueList();
+  bool isCliquesLoading = true;
   @override
   void initState() {
     super.initState();
-    fetchActiveLeger();
+    fetchCliques();
     //fetchFinishLedger();
   }
-
-  Future<void> fetchActiveLeger() async {
-    await activeLedgerContentList.fetchData();
+  Future<void> fetchCliques() async {
+    await cliqueList.fetchData();
     setState(() {
-      isActiveLeedgerLoading = false;
+      isCliquesLoading = false;
     });
   }
 
-  Future<void> FetchFinishLedger() async {
-    setState(() {
-      isFinishLedgerLoading = false;
-    });
-  }
+
 
   void _createClique(BuildContext context) {
     // Navigate to create page or show a dialog
@@ -50,6 +45,8 @@ class _DashboardState extends State<Dashboard> {
       builder: (BuildContext context) {
         bool withFunds = false;
         final TextEditingController amountController = TextEditingController();
+        final TextEditingController cliqueNameController = TextEditingController();
+        final TextEditingController MembersController = TextEditingController();
         final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
         return StatefulBuilder(
@@ -62,12 +59,23 @@ class _DashboardState extends State<Dashboard> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     TextFormField(
+                      controller: cliqueNameController,
                       decoration:
                           const InputDecoration(
                             hintText: "Enter Clique Name",),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Clique Name cannot be empty";
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: MembersController,
+                      decoration:  const InputDecoration(hintText: "eg: john,bob12,alice03"),
+                      validator: (value){
+                        if(value == null || value.isEmpty){
+                          return "This field cannot be empty";
                         }
                         return null;
                       },
@@ -114,7 +122,14 @@ class _DashboardState extends State<Dashboard> {
                     if (formKey.currentState!.validate()) {
                       // Handle the create action
                       String amount = amountController.text;
-                      
+                      String cliqueName = cliqueNameController.text;
+                      String members = MembersController.text;
+                      bool isActive = true;
+                      List<String> membersList = members.split(',');
+                      CliquePostSchema cls = amount.isEmpty
+                      ? CliquePostSchema(name: cliqueName, members: membersList, isActive: isActive)
+                      : CliquePostSchema(name: cliqueName, members: membersList, fund: amount, isActive: isActive);
+                      createCliquePost.postData(cls);
                       // Use the amount if withFunds is true
                       Navigator.of(context).pop();
                     }
@@ -163,28 +178,24 @@ class _DashboardState extends State<Dashboard> {
       ),
         body: Column(
           children: [
-            TabBar(tabs: [
-              Tab(text: "Active Ledger"),
-              Tab(text: "Finished Ledger")
+            const TabBar(tabs:[
+              Tab(child:Text("Active Ledger",style:TextStyle(color: Color.fromARGB(255, 14, 97, 130)),),),
+              Tab(child: Text("Finished Ledger",style:TextStyle(color: Color.fromARGB(255, 14, 97, 130))),)
             ]),
             Expanded(
               child: TabBarView(
                 children: [
-                  isActiveLeedgerLoading
+                  isCliquesLoading
                       ? const Center(
                           child: CircularProgressIndicator(),
                         )
-                      : activeLedgerContentList.activeCliqueList.isEmpty
+                      : cliqueList.activeCliqueList.isEmpty
                           ? const Center(
                               child: Text("No Ledgers to show"),
                             )
-                          : LedgerTab(
-                              cliqueList: activeLedgerContentList.activeCliqueList),
-                        Center(child: Text("Nothing To show"),)
-
-                  // isFinishLedgerLoading
-                  // ? const Center(child: CircularProgressIndicator(),)
-                  // :
+                          : LedgerTab(cliqueList: cliqueList.activeCliqueList),
+                            cliqueList.finishedCliqueList.isEmpty ? const Center(child: Text("No Ledgers to Show"),):
+                            LedgerTab(cliqueList: cliqueList.finishedCliqueList)
                 ],
               ),
             ),
@@ -239,7 +250,7 @@ class LedgerTab extends StatelessWidget {
                                  ),
                               ),
                               Text(
-                                '${clique.latestTransaction.sender}-${clique.latestTransaction.amount} \$',
+                                '${clique.latestTransaction.sender}-${clique.latestTransaction.spendAmount!=null ? clique.latestTransaction.sendAmount : clique.latestTransaction.sendAmount} \u{20B9}',
                                  style: TextStyle(color: Colors.grey,fontSize: 12),
                               ),
                                Text(

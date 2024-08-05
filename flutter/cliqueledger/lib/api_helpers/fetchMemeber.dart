@@ -5,11 +5,11 @@ import 'package:http/http.dart' as http;
 class MemberList {
   List<Member> members = [];
   List<Member> memberDemo = [
-      Member(name: "Ant"),
-      Member(name: "Seo Ri"),
-      Member(name: "Ko Mun Young"),
-      Member(name: "Seo Yeo Ji"),
-      Member(name: "Tian Tian"),
+      // Member(name: "Ant"),
+      // Member(name: "Seo Ri"),
+      // Member(name: "Ko Mun Young"),
+      // Member(name: "Seo Yeo Ji"),
+      // Member(name: "Tian Tian"),
     // // Add more transactions here
   ];
 

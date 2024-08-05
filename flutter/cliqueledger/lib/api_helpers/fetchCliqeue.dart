@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class ActiveLedgerContentList{
+class CliqueList{
 
   List<Clique> cliqueList = [];
   List<Clique> activeCliqueList=[];
+  List<Clique> finishedCliqueList=[];
   Future<void> fetchData() async{
    final uriGet = Uri.parse('${BASE_URL}/cliques');
     try {
@@ -18,6 +19,8 @@ class ActiveLedgerContentList{
          for(Clique cl in cliqueList){
             if(cl.isActive){
               activeCliqueList.add(cl);
+            }else{
+              finishedCliqueList.add(cl);
             }
          }
         print("Data fetched successfully: ${response.body}");

@@ -1,12 +1,13 @@
 import 'package:cliqueledger/models/admin.dart';
+import 'package:cliqueledger/models/member.dart';
 import 'package:cliqueledger/models/transaction.dart';
 import 'package:cliqueledger/models/user.dart';
 
 class Clique{
   final String id;
   final String name;
-  final List<Admin> admins;
-  final List<User> members;
+  final List<Member> admins;
+  final List<Member> members;
   final bool isActive;
   final Transaction latestTransaction;
 
@@ -24,10 +25,10 @@ class Clique{
       id: json['id'] as String,
       name: json['name'] as String,
       admins: (json['admins'] as List<dynamic>)
-          .map((item) => Admin.fromJson(item as Map<String, dynamic>))
+          .map((item) => Member.fromJson(item as Map<String, dynamic>))
           .toList(),
       members: (json['members'] as List<dynamic>)
-          .map((item) => User.fromJson(item as Map<String, dynamic>))
+          .map((item) => Member.fromJson(item as Map<String, dynamic>))
           .toList(),
       isActive: json['isActive'] as bool,
       latestTransaction: Transaction.fromJson(json['latestTransaction'] as Map<String, dynamic>),

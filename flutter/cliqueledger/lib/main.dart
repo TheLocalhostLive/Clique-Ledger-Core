@@ -39,9 +39,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-       routerConfig: Routers.routers(true),
+    // return MaterialApp.router(
+    //   debugShowCheckedModeBanner: false,
+    //    routerConfig: Routers.routers(true),
+    // );
+    return MaterialApp(
+      home:Dashboard()
     );
   }
 }
