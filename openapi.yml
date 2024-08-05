@@ -711,44 +711,45 @@ components:
 
     CliqueResponse:
       type: object
-      properties: 
-          id:
-            type: string
-            example: C000001
-          name:
-            type: string
-            example: cliques name
-          admins:
-            type: array
-            items:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                  example: U0001
-                member_id:
-                  type: string
-                  example: M00001
-          members:
-            type: array
-            items:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                  example: U0001
-                member_id:
-                  type: string
-                  example: M00001
-          fund: 
-            type: number
-            example: 5000
-          spend: 
-            type: number
-            example: 1000
-          isActive:
-            type: boolean
-            example: true
+      properties:
+        clique_id:
+          type: string
+          example: C000001
+        name:
+          type: string
+          example: clique name
+        admins:
+          type: array
+          items:
+            type: object
+            properties:
+              member_id:
+                type: string
+                example: M00001
+              member_name:
+                type: string
+                example: Admin Name
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              member_id:
+                type: string
+                example: M00001
+              member_name:
+                type: string
+                example: Member Name
+        is_fund:
+          type: boolean
+          example: true
+        fund:
+          type: number
+          example: 5000
+        isActive:
+          type: boolean
+          example: true
+
 
     TransactionRequest:
       type: object
@@ -776,42 +777,53 @@ components:
           
     TransactionResponse:
       type: object
-      properties: 
-          id:
-            type: string
-            example: TN00001
-          clique_id: 
-            type: string
-            example: C000001
-          type:
-            type: string
-            example: spend
-          sender:
+      properties:
+        transaction_id:
+          type: string
+          example: TN00001
+        clique_id:
+          type: string
+          example: C000001
+        transaction_type:
+          type: string
+          example: spend
+        sender:
+          type: object
+          properties:
+            member_id:
+              type: string
+              example: M000001
+            member_name:
+              type: string
+              example: Sender Name
+        is_verified:
+          type: string
+          example: "not_verified"
+        done_at:
+          type: string
+          format: date-time
+          example: "2023-07-04T12:34:56Z"
+        participants:
+          type: array
+          items:
             type: object
             properties:
-              user_id: 
+              member_id:
                 type: string
-                example: U00002
-              member_id: 
+                example: M000002
+              member_name:
                 type: string
-                example: M000001 
-          paritcipants:
-            type: array
-            items:
-              type: object
-              properties:
-                user_id: 
-                  type: string
-                  example: U00002
-                member_id:
-                  type: string
-                  example: M000001
-                part_amount: 
-                  type: number
-                  example: 300
-          spend_amount:
-            type: number
-            example: 1000
+                example: Participant Name
+              part_amount:
+                type: number
+                example: 300
+        amount:
+          type: number
+          example: 1000
+        description:
+          type: string
+          example: "Dinner with friends"
+
 
     UserRequest:       
       type: object
