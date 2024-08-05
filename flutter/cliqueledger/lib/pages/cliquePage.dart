@@ -1,5 +1,6 @@
 import 'package:cliqueledger/api_helpers/fetchTransactions.dart';
 import 'package:cliqueledger/models/cliqeue.dart';
+import 'package:cliqueledger/models/participants.dart';
 import 'package:cliqueledger/providers/cliqueProvider.dart';
 import 'package:cliqueledger/themes/appBarTheme.dart';
 import 'package:cliqueledger/utility/routers_constant.dart';
@@ -25,15 +26,17 @@ class _CliquepageState extends State<Cliquepage> {
     fetchTransactions();
   }
  Future<void> fetchTransactions() async {
-    final clique = context.read<CliqueProvider>().currentClique;
-    if (clique != null) {
-      await transactionList.fetchData(clique.id); // Pass the cliqueId here
-      setState(() {
-        isLoading = false;
-      });
-    } else {
-      // Handle the case where clique is null, if necessary
-    }
+    // final clique = context.read<CliqueProvider>().currentClique;
+    // if (clique != null) {
+    //   await transactionList.fetchData(clique.id); // Pass the cliqueId here
+    //   setState(() {
+    //     isLoading = false;
+    //   });
+    // } else {
+    //   // Handle the case where clique is null, if necessary
+    // }
+    await transactionList.fetchData("123");
+    isLoading = false;
   }
 
   void _createTransaction(BuildContext context) {
@@ -47,7 +50,7 @@ class _CliquepageState extends State<Cliquepage> {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         return AlertDialog(
-          title: const Text('Create Clique'),
+          title: const Text('Create Transaction'),
           content: Form(
             key: formKey,
             child: Column(
@@ -173,7 +176,8 @@ class _CliquepageState extends State<Cliquepage> {
         floatingActionButton: FloatingActionButton(
           onPressed: () => _createTransaction(context),
           tooltip: 'Create Transaction',
-          child: const Icon(Icons.add),
+          backgroundColor: Color.fromARGB(255, 27, 62, 75),
+          child: const Icon(Icons.add,color: Color.fromARGB(255, 255, 255, 255),),
         ),
       ),
     );
@@ -185,49 +189,100 @@ class TransactionsTab extends StatelessWidget {
   
   const TransactionsTab({required this.transactions});
 
-  void _checkTransaction(BuildContext context, Transaction t) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: Text('Transaction Details'),
-              content: Column(
+void _checkTransaction(BuildContext context, Transaction t) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            title: const Text(
+              'Transaction Details',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  // Add your transaction details widgets here
+                  if (t.type == "send") ...[
+                    Text(
+                      '${t.sender.name} : \u{20B9}${t.sendAmount?.toStringAsFixed(2) ?? 'N/A'} paid to ${t.participants[0].name}',
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ] else ...[
+                    Text(
+                      '${t.sender.name} Paid Total: \u{20B9}${t.spendAmount?.toStringAsFixed(2) ?? 'N/A'} To -',
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    ...t.participants.map(
+                      (p) => Text(
+                        '${p.name} - \u{20B9}${p.partAmount}',
+                        style:  TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ).toList(),
+                  ],
+                  SizedBox(height: 20),
                   Text(
-                    '${t.sender} - \$${t.amount.toStringAsFixed(2)} paid to ${t.receiver}',
-                    style: TextStyle(fontSize: 16.0),
+                    'Description:',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  Text(
+                    '${t.description}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () => {},
-                    child: Text(
+                    child: const Text(
                       "Verify",
                       style: TextStyle(
-                          color: Colors.white), // Set text color to white
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF00334E), // Set button color to #00334E
+                      backgroundColor: const Color(0xFF00334E),
+                      minimumSize: Size(double.infinity, 36), // Full-width button
+                      padding: const EdgeInsets.symmetric(vertical: 12), // Add vertical padding
                     ),
-                  )
+                  ),
                 ],
               ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Close',style: TextStyle(color: Color.fromARGB(255, 1, 47, 63)),),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +320,7 @@ class TransactionsTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${tx.sender} - \$${tx.amount.toStringAsFixed(2)}',
+                        '${tx.sender} - \u{20B9}${tx.spendAmount != null ? tx.spendAmount!.toStringAsFixed(2):tx.sendAmount!.toStringAsFixed(2)}',
                         style: TextStyle(fontSize: 16.0),
                       ),
                       const SizedBox(height: 4.0),

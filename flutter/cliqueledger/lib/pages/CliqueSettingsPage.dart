@@ -17,19 +17,19 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final List<Member> memberList = [
-     Member(name: "Ant"),
-      Member(name: "Seo Ri"),
-      Member(name: "Ko Mun Young"),
-      Member(name: "Seo Yeo Ji"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
-      Member(name: "Tian Tian"),
+    //  Member(name: "Ant"),
+    //   Member(name: "Seo Ri"),
+    //   Member(name: "Ko Mun Young"),
+    //   Member(name: "Seo Yeo Ji"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
+    //   Member(name: "Tian Tian"),
     ];
   bool isEditing = false;
   TextEditingController _nameController =
@@ -151,7 +151,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 itemBuilder: (context, index) {
                   final member = memberList[index];
                   return ListTile(
-                    title: Text(member.name),
+                    title: Text("null"),
                     trailing: ElevatedButton(
                       onPressed: () {},
                       child: Icon(Icons.delete),
