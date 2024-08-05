@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import verifySender from "../middlewares/verifySender";
 import generateTransactionId from '../controllers/generateTransactionId';
 
@@ -8,6 +8,12 @@ const router = Router();
 
 
 // Get all transactions
+// interface WhereClause {
+//   sender_id?: string;
+//   clique_id?: string;
+//   AND?: Array<{ done_at?: Prisma.DateTimeFilter, spend?: { some: { member_id: string } } }>;
+//   done_at?: Prisma.DateTimeFilter;
+// }
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { sender, receiver, clique, from_date, to_date } = req.query;
@@ -43,7 +49,6 @@ router.get('/', async (req: Request, res: Response) => {
       where.AND.push({ done_at: dateFilter });
     }
 
-    // Check if receiver (member_id in Spend) is provided
     if (receiver) {
       if (!where.AND) {
         where.AND = [];
@@ -58,17 +63,48 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
-    // Fetch transactions based on constructed where condition
     const transactions = await prisma.transaction.findMany({
       where: where,
       take: limit,
       skip: offset,
       include: {
-        spend: true // Include spend details in the response
+        spend: {
+          include: {
+            member: {
+              include: {
+                user: true
+              }
+            }
+          }
+        },
+        sender: {
+          include: {
+            user: true
+          }
+        }
       }
     });
 
-    res.json(transactions);
+    const formattedTransactions = transactions.map(transaction => ({
+      transaction_id: transaction.transaction_id,
+      amount: transaction.amount,
+      description: transaction.description,
+      sender: {
+        member_id: transaction.sender.member_id,
+        member_name: transaction.sender.user.user_name
+      },
+      clique_id: transaction.clique_id,
+      transaction_type: transaction.transaction_type,
+      is_verified: transaction.is_verified,
+      done_at: transaction.done_at,
+      participants: transaction.spend.map(spend => ({
+        member_id: spend.member.member_id,
+        member_name: spend.member.user.user_name,
+        part_amount: spend.amount
+      }))
+    }));
+
+    res.json(formattedTransactions);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server Error' });
@@ -87,7 +123,8 @@ router.post('/', async (req: Request, res: Response) => {
     const amount = parseFloat(req.body.amount);
     const des = req.body.description;
     const cliqueId = req.body.cliqueId;
-
+    
+    // Create new transaction
     const newTransaction = await prisma.transaction.create({
       data: {
         transaction_id: await generateTransactionId(),
@@ -98,11 +135,14 @@ router.post('/', async (req: Request, res: Response) => {
         clique_id: cliqueId
       }
     });
-    const receivers = [];
+
+    // Create spend records and collect participant details
     const participants: Participant[] = req.body.participants;
+    const formattedParticipants = [];
     for (const participant of participants) {
       const receiverId = participant.id;
       const receiverAmount = parseFloat(participant.amount);
+
       await prisma.spend.create({
         data: {
           transaction_id: newTransaction.transaction_id,
@@ -110,19 +150,44 @@ router.post('/', async (req: Request, res: Response) => {
           amount: receiverAmount
         }
       });
-      receivers.push({
-        receiver_Id: receiverId,
-        amount: receiverAmount,
+
+      const member = await prisma.member.findUnique({
+        where: { member_id: receiverId },
+        include: { user: true }
       });
+
+      if (member) {
+        formattedParticipants.push({
+          member_id: member.member_id,
+          member_name: member.user.user_name,
+          part_amount: receiverAmount
+        });
+      }
     }
+
+    const senderMember = await prisma.member.findUnique({
+      where: { member_id: sender },
+      include: { user: true }
+    });
+
+    // Send the response
     res.status(201).json({
-      transaction: newTransaction,
-      receivers: receivers
+      transaction_id: newTransaction.transaction_id,
+      clique_id: newTransaction.clique_id,
+      type: newTransaction.transaction_type,
+      sender: senderMember
+        ? {
+            member_id: senderMember.member_id,
+            member_name: senderMember.user.user_name
+          }
+        : null,
+      participants: formattedParticipants,
+      spend_amount: newTransaction.amount
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'An error occured when performing transaction' });
+    res.status(500).json({ error: 'An error occurred when performing transaction' });
   }
 });
 
@@ -130,6 +195,8 @@ router.post('/', async (req: Request, res: Response) => {
 router.get('/:transactionId', async (req: Request, res: Response) => {
   try {
     const transactionId = req.params.transactionId;
+
+    // Fetch the transaction
     const transaction = await prisma.transaction.findUnique({
       where: { transaction_id: transactionId }
     });
@@ -138,21 +205,54 @@ router.get('/:transactionId', async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Transaction not found' });
       return;
     }
-    const receivers = await prisma.spend.findMany({
-      where: { transaction_id: transactionId }
+
+    // Fetch the sender member details
+    const senderMember = await prisma.member.findUnique({
+      where: { member_id: transaction.sender_id },
+      include: { user: true } // Fetch associated user details from the Member table
     });
 
-    const participants = [];
-    for (const receiver of receivers) {
-      participants.push({
-        receiver_id: receiver.member_id,
-        amount: receiver.amount,
-      });
+    if (!senderMember) {
+      res.status(404).json({ error: 'Sender member not found' });
+      return;
     }
-    res.json({ transaction: transaction, receivers: participants });
+
+    // Fetch the participants
+    const receivers = await prisma.spend.findMany({
+      where: { transaction_id: transactionId },
+      include: {
+        member: {
+          include: {
+            user: true // Include user details for participants
+          }
+        }
+      }
+    });
+
+    // Format participants
+    const participants = receivers.map(receiver => ({
+      member_id: receiver.member.member_id,
+      member_name: receiver.member.user.user_name,
+      part_amount: receiver.amount
+    }));
+
+    // Prepare the response
+    const response = {
+      transaction_id: transaction.transaction_id,
+      clique_id: transaction.clique_id,
+      type: transaction.transaction_type,
+      sender: {
+        member_id: senderMember.member_id,
+        member_name: senderMember.user.user_name
+      },
+      participants: participants,
+      spend_amount: transaction.amount
+    };
+
+    res.json(response);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'An error occured while getting transaction details' });
+    res.status(500).json({ error: 'An error occurred while getting transaction details' });
   }
 });
 
