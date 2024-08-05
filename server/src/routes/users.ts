@@ -125,7 +125,7 @@ router.patch('/:userId', async(req: Request, res: Response) =>{
             });
          }
          if(phone){
-            const checkPhone = await prisma.user.findUnique({ 
+            const checkPhone = await prisma.user.findFirst({ 
                 where: {phone_no: phone}
             });
 

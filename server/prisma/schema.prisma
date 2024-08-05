@@ -11,7 +11,7 @@ model User {
   user_id    String   @id
   user_name  String
   mail       String   @unique
-  phone_no      String   @unique
+  phone_no   String
   password   String
   created_at DateTime @default(now())
   members    Member[]
