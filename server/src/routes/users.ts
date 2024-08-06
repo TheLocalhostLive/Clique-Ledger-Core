@@ -31,20 +31,13 @@ router.get('/', async (req: Request, res: Response) => {
 //create a new user
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const { name, phone, email, password } = req.body;
-        if(password.length < 8) {
-            res.status(400).json({
-                staus: "FAILED", 
-                message: 'Password must be at least 8 characters'
-        });
-        return;
-    }
+        const { name, phone, email } = req.body;
+    
         const user = await prisma.user.create({
             data: {
                 user_id: await generateUserId(),
                 user_name: name,
                 mail: email,
-                password:password,
                 phone_no: phone
             }
         });
