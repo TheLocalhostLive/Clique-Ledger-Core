@@ -4,10 +4,13 @@ import { error } from 'console';
 import checkAdmin from '../middlewares/checkAdmin';
 import generateCliqueId from '../controllers/generateCliqueId';
 import generateMemberId from '../controllers/generateMemberId';
+import { auth } from 'express-oauth2-jwt-bearer';
+import checkIdentity from '../middlewares/checkIdentity';
 
 const prisma = new PrismaClient()
 
 const router = Router();
+const checkJwt = auth();
 
 // get all cliques
 router.get('/', async (req: Request, res: Response) => {
