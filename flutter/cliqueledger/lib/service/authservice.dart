@@ -78,10 +78,15 @@ class Authservice {
 
   Future<String> login() async {
     final authorizationTokenRequest = AuthorizationTokenRequest(
-        AUTH0_CLIENT_ID, AUTH0_REDIRECT_URI,
-        issuer: AUTH0_ISSUER,
-        scopes: ['openid', 'profile', 'email', 'offline_access'],
-        promptValues: ["login"]);
+      AUTH0_CLIENT_ID,
+      AUTH0_REDIRECT_URI,
+      issuer: AUTH0_ISSUER,
+      scopes: ['openid', 'profile', 'email', 'offline_access', 'api'],
+      promptValues: ["login"],
+      additionalParameters: {
+        'audience': "https://dev-1yffugckd6d5gydc.us.auth0.com/api/v2/"
+      },
+    );
 
     final result =
         await appAuth.authorizeAndExchangeCode(authorizationTokenRequest);
