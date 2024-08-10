@@ -26,6 +26,12 @@ router.get('/', async (req: Request, res: Response) => {
               }
             }
           }
+        },
+        transactions: {
+          orderBy: {
+            done_at: 'desc'
+          },
+          take: 1, // Get only the latest transaction
         }
       }
     });
@@ -51,7 +57,14 @@ router.get('/', async (req: Request, res: Response) => {
       })),
       is_fund: clique.is_fund,
       fund: clique.fund,
-      isActive: clique.is_active
+      isActive: clique.is_active,
+      last_transaction: clique.transactions.length > 0 ? {
+        transaction_id: clique.transactions[0].transaction_id,
+        amount: clique.transactions[0].amount,
+        description: clique.transactions[0].description,
+        sender_id: clique.transactions[0].sender_id,
+        done_at: clique.transactions[0].done_at,
+      } : null
     }));
 
     res.status(200).json(transformedRecords);
@@ -60,6 +73,7 @@ router.get('/', async (req: Request, res: Response) => {
     res.status(500).json({ error: "An error occurred while fetching records" });
   }
 });
+
 
 // create a new clique and return
 router.post('/', async (req: Request, res: Response) => {
