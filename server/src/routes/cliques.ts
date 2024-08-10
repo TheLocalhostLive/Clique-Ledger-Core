@@ -40,7 +40,7 @@ router.get('/', async (req: Request, res: Response) => {
       clique_id: clique.clique_id,
       clique_name: clique.clique_name,
       admins: clique.members
-        .filter(member => member.is_admin) // Filter admins
+        .filter(member => member.is_admin)
         .map(member => ({
           member_id: member.user_id,
           member_name: member.user.user_name
@@ -65,7 +65,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const name: string = req.body.name;
-    const funds: number = req.body.funds;
+    const funds: number = parseFloat(req.body.funds);
     const fund_flag: boolean = funds !== 0;
 
     // Create new clique
@@ -279,7 +279,7 @@ router.post('/:cliqueId/members/', checkAdmin, async (req: Request, res: Respons
           joined_at: newMember.joined_at,
           amount: newMember.amount,
           due: newMember.due,
-          member_name: user.user_name // Include member name
+          member_name: user.user_name
         });
       }
       else{
