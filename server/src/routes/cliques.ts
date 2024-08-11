@@ -13,7 +13,7 @@ const router = Router();
 const checkJwt = auth();
 
 // get all cliques
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => {
   try {
     const allRecords = await prisma.clique.findMany({
       include: {
@@ -22,7 +22,8 @@ router.get('/', async (req: Request, res: Response) => {
             user: {
               select: {
                 user_id: true,
-                user_name: true
+                user_name: true,
+                mail: true
               }
             }
           }
@@ -74,9 +75,8 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-
 // create a new clique and return
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) => {
   try {
     const name: string = req.body.name;
     const funds: number = parseFloat(req.body.funds);
@@ -129,7 +129,6 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'An error occurred while creating the clique' });
   }
 });
-
 
 // GET a single clique by ID
 router.get('/:cliqueId', async (req: Request, res: Response) => {
