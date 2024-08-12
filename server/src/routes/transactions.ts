@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { PrismaClient} from '@prisma/client';
 import verifySender from "../middlewares/verifySender";
 import generateTransactionId from '../controllers/generateTransactionId';
-import { io, userSocketMap } from '../app';
+import { userSocketMap } from '../app';
 import { Server as SocketIOServer } from 'socket.io';
 import { auth } from 'express-oauth2-jwt-bearer';
 import checkIdentity from '../middlewares/checkIdentity';
