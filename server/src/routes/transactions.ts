@@ -172,6 +172,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
       const transactionDetails = {
         transaction_id: newTransaction.transaction_id,
         clique_id: newTransaction.clique_id,
+        is_verified: newTransaction.is_verified,
         type: newTransaction.transaction_type,
         sender: senderMember
           ? {
@@ -196,50 +197,6 @@ const createTransactionRoute = (io: SocketIOServer) => {
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'An error occurred when performing the transaction' });
-    }
-  });
-
-  //delete a transaction
-  router.delete('/:transactionId', async (req: Request, res: Response) => {
-    try {
-      const { transactionId } = req.params;
-
-      // Fetch the transaction to get clique ID
-      const transaction = await prisma.transaction.findUnique({
-        where: { transaction_id: transactionId },
-      });
-
-      if (!transaction) {
-        res.status(404).json({ error: 'Transaction not found' });
-        return;
-      }
-
-      // Delete the transaction
-      await prisma.transaction.delete({
-        where: { transaction_id: transactionId },
-      });
-
-      // Notify members of the clique
-      const cliqueMembers = await prisma.member.findMany({
-        where: { clique_id: transaction.clique_id },
-        select: { user_id: true },
-      });
-
-      cliqueMembers.forEach((member) => {
-        const socketId = userSocketMap.get(member.user_id);
-        if (socketId) {
-          io.to(socketId).emit('transactionDeleted', {
-            transaction_id: transactionId,
-            clique_id: transaction.clique_id,
-            message: 'A transaction has been deleted',
-          });
-        }
-      });
-
-      res.status(204).json({ message: 'Transaction deleted successfully' });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'An error occurred while deleting the transaction' });
     }
   });
 
@@ -305,6 +262,50 @@ const createTransactionRoute = (io: SocketIOServer) => {
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'An error occurred while getting transaction details' });
+    }
+  });
+  
+  //delete a transaction
+  router.delete('/:transactionId', async (req: Request, res: Response) => {
+    try {
+      const { transactionId } = req.params;
+
+      // Fetch the transaction to get clique ID
+      const transaction = await prisma.transaction.findUnique({
+        where: { transaction_id: transactionId },
+      });
+
+      if (!transaction) {
+        res.status(404).json({ error: 'Transaction not found' });
+        return;
+      }
+
+      // Delete the transaction
+      await prisma.transaction.delete({
+        where: { transaction_id: transactionId },
+      });
+
+      // Notify members of the clique
+      const cliqueMembers = await prisma.member.findMany({
+        where: { clique_id: transaction.clique_id },
+        select: { user_id: true },
+      });
+
+      cliqueMembers.forEach((member) => {
+        const socketId = userSocketMap.get(member.user_id);
+        if (socketId) {
+          io.to(socketId).emit('transactionDeleted', {
+            transaction_id: transactionId,
+            clique_id: transaction.clique_id,
+            message: 'A transaction has been deleted',
+          });
+        }
+      });
+
+      res.status(204).json({ message: 'Transaction deleted successfully' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'An error occurred while deleting the transaction' });
     }
   });
 
