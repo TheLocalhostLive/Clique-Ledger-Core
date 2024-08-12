@@ -4,9 +4,13 @@ import verifySender from "../middlewares/verifySender";
 import generateTransactionId from '../controllers/generateTransactionId';
 import { io, userSocketMap } from '../app';
 import { Server as SocketIOServer } from 'socket.io';
+import { auth } from 'express-oauth2-jwt-bearer';
+import checkIdentity from '../middlewares/checkIdentity';
+import checkCliqueLevelPerms from '../middlewares/checkCliqueLevelPerms';
+
 const prisma = new PrismaClient();
 const router = Router();
-
+const checkJwt = auth();
 // Get all transactions
 // interface WhereClause {
 //   sender_id?: string;
@@ -114,7 +118,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
   });
 
   //to create a new transaction
-  router.post('/', async (req: Request, res: Response) => {
+  router.post('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
     try {
       const { type, sender, amount, description, cliqueId, participants } = req.body;
 
