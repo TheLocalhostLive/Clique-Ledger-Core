@@ -37,7 +37,7 @@ export default async function checkIdentity (req: Request, res: Response, next: 
       && typeof userinfojson.name === "string"
     )  {
       const user = await prisma.user.findUnique({
-        where: { user_id: userinfojson.email }
+        where: { mail: userinfojson.email }
       });
       console.log(user);
       if(!user) {
