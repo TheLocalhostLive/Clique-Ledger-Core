@@ -20,17 +20,17 @@ const checkJwt = auth();
 // }
 
 const createTransactionRoute = (io: SocketIOServer) => {
-  router.get('/', async (req: Request, res: Response) => {
+  router.get('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
     try {
-      const { sender, receiver, clique, from_date, to_date } = req.query;
+      const { receiver, clique, from_date, to_date } = req.query;
       const limit = 10;
       const offset = 2;
 
       // Construct the where condition
       const where: { [key: string]: any } = {};
-
-      if (sender) {
-        where.sender_id = sender;
+      const memberId = req.body.member.member_id; 
+      if (memberId) {
+        where.sender_id = memberId;
       }
 
       if (clique) {
@@ -120,14 +120,14 @@ const createTransactionRoute = (io: SocketIOServer) => {
   //to create a new transaction
   router.post('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
     try {
-      const { type, sender, amount, description, cliqueId, participants } = req.body;
+      const { type, amount, description, cliqueId, participants } = req.body;    
 
       // Create new transaction
       const newTransaction = await prisma.transaction.create({
         data: {
           transaction_id: await generateTransactionId(),
           transaction_type: type,
-          sender_id: sender,
+          sender_id: req.body.member.member_id,
           amount: parseFloat(amount),
           description: description,
           clique_id: cliqueId,
@@ -163,7 +163,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
       }
 
       const senderMember = await prisma.member.findUnique({
-        where: { member_id: sender },
+        where: { member_id: req.body.member.member_id },
         include: { user: true },
       });
 
