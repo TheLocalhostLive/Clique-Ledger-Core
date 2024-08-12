@@ -24,28 +24,29 @@ export default function checkCliqueLevelPerms(
     cliqueInfo: string,
     permissionName: CliquePermissionName
   ) {
-    let cliqueParamName: string;
+    
     const prisma = new PrismaClient();
-  
-    if (cliqueInfo.startsWith(':/')) {
-      cliqueParamName = cliqueInfo.slice(2);
-    } else if (cliqueInfo.startsWith('?')) {
-      cliqueParamName = cliqueInfo.slice(1);
-    }
-  
+
     // This is the actual middleware
     return (req: Request, res: Response, next: NextFunction) => {
-      const cliqueId = req.params[cliqueParamName];
+      let cliqueId: string = req.body.cliqueId;
+      
+      if (cliqueInfo.startsWith(':/')) { 
+        cliqueId = req.params.cliqueId;
+      } else if (cliqueInfo.startsWith('?')) {
+        cliqueId = req.query.cliqueId as string;
+      } 
+
       const userId = req.body.user['https://cliqueledger.com/uid'] as string;
-      const userInfo = prisma.member.findFirst({
+      const memberInfo = prisma.member.findFirst({
         where: {
           clique_id: cliqueId,
           user_id: userId,
           is_admin: permissionName === 'admin',
         },
       });
-  
-      if (!userInfo) {
+      req.body.member = memberInfo;
+      if (!memberInfo) {
         res.status(403).json({
           message: `You must be a ${permissionName} of the group to perform the operation.`,
         });
