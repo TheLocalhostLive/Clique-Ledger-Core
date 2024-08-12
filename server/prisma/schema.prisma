@@ -55,6 +55,7 @@ model Member {
   member_id    String        @id
   user_id      String
   clique_id    String
+  is_active    Boolean       @default(true)
   is_admin     Boolean
   joined_at    DateTime
   amount       Float

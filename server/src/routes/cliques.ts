@@ -18,6 +18,9 @@ router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => 
     const allRecords = await prisma.clique.findMany({
       include: {
         members: {
+          where:{
+            is_active: true
+          },
           include: {
             user: {
               select: {
@@ -93,6 +96,9 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
       },
       include: {
         members: {
+          where:{
+            is_active: true
+          },
           include: {
             user: {
               select: {
@@ -141,6 +147,9 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
       },
       include: {
         members: {
+          where:{
+            is_active: true
+          },
           include: {
             user: {
               select: {
@@ -233,6 +242,19 @@ router.delete('/:cliqueId', async (req: Request, res: Response) => {
       res.status(404).json({ field_name: 'cliqueId', status: 'NOT FOUND' });
       return;
     }
+    
+    // Delete all associated transactions
+    await prisma.transaction.deleteMany({
+      where: {
+        clique_id: cliqueId,
+      },
+    });
+    // Delete all associated members
+    await prisma.member.deleteMany({
+      where: {
+        clique_id: cliqueId,
+      },
+    });
 
     res.status(204).json({ message: 'Clique deleted successfully' });
   } catch (err) {
@@ -340,7 +362,8 @@ router.delete('/clique/:cliqueId/members/', checkAdmin, async (req: Request, res
     }
 
     for (const userId of userIds) {
-      await prisma.member.delete({
+      await prisma.member.update({
+        data: {is_active: false},
         where: {member_id: userId},
       });
     }
