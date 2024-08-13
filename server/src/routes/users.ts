@@ -161,10 +161,7 @@ router.delete('/:userId', async (req: Request, res: Response) => {
                 user_id: userId
             }
         });
-        res.status(204).json({
-            status: "SUCCESS",
-            message: "Successfully deleted user"
-        })
+        res.status(204).send();
     }
     catch(err){
         console.log(err);
