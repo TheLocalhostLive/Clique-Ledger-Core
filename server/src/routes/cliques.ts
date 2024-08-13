@@ -93,37 +93,32 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
         fund: funds,
         is_fund: fund_flag,
         clique_name: name,
-      },
-      include: {
-        members: {
-          where:{
-            is_active: true
-          },
-          include: {
-            user: {
-              select: {
-                user_id: true,
-                user_name: true
-              }
-            }
-          }
-        }
-      },
+      }
     });
+
+      const newMember = await prisma.member.create({
+        data: {
+          member_id: await generateMemberId(),
+          user_id: req.body.user.user_id as string,
+          clique_id: newClique.clique_id,
+          is_admin: true,
+          joined_at: new Date(),
+          amount: 0,
+          due: false,
+        }
+      });
 
     const transformedClique = {
       clique_id: newClique.clique_id,
       clique_name: newClique.clique_name,
-      admins: newClique.members
-        .filter(member => member.is_admin)
-        .map(member => ({
-          member_id: member.user_id,
-          member_name: member.user.user_name
-        })),
-      members: newClique.members.map(member => ({
-        member_id: member.user_id,
-        member_name: member.user.user_name
-      })),
+      admins:{
+          member_id: newMember.user_id,
+          member_name: req.body.user.user_name
+        },
+      members:{
+        member_id: newMember.user_id,
+        member_name: req.body.user.user_name
+        },
       isFund: newClique.is_fund,
       fund: newClique.fund,
       isActive: newClique.is_active

@@ -22,7 +22,7 @@ const checkJwt = auth();
 const createTransactionRoute = (io: SocketIOServer) => {
   router.get('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
     try {
-      const { receiver, clique, from_date, to_date } = req.query;
+      const { receiver, cliqueId, from_date, to_date } = req.query;
       const limit = 10;
       const offset = 2;
 
@@ -33,8 +33,8 @@ const createTransactionRoute = (io: SocketIOServer) => {
         where.sender_id = memberId;
       }
 
-      if (clique) {
-        where.clique_id = clique;
+      if (cliqueId) {
+        where.clique_id = cliqueId;
       }
 
       if (from_date || to_date) {
