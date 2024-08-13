@@ -28,7 +28,7 @@ export default function checkCliqueLevelPerms(
     const prisma = new PrismaClient();
 
     // This is the actual middleware
-    return (req: Request, res: Response, next: NextFunction) => {
+    return async(req: Request, res: Response, next: NextFunction) => {
       let cliqueId: string = req.body.cliqueId;
       
       if (cliqueInfo.startsWith(':/')) { 
@@ -37,12 +37,12 @@ export default function checkCliqueLevelPerms(
         cliqueId = req.query.cliqueId as string;
       } 
 
-      const userId = req.body.user['https://cliqueledger.com/uid'] as string;
-      const memberInfo = prisma.member.findFirst({
+      const userId = req.body.user.user_id as string;
+      
+      const memberInfo = await prisma.member.findFirst({
         where: {
           clique_id: cliqueId,
           user_id: userId,
-          is_admin: permissionName === 'admin',
         },
       });
       req.body.member = memberInfo;
