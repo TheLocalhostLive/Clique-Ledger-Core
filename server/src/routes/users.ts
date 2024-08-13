@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import {  PrismaClient } from '@prisma/client';
-import checkUser from '../middlewares/checkUser';
 import generateUserId from '../controllers/generateUserId';
 
 const prisma = new PrismaClient()
@@ -143,7 +142,7 @@ router.patch('/:userId', async(req: Request, res: Response) =>{
 });
 
 //delete an user
-router.delete('/:userId', checkUser, async (req: Request, res: Response) => {
+router.delete('/:userId', async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
         const findUser = await prisma.user.findUnique({
