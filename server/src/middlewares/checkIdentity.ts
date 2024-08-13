@@ -1,5 +1,7 @@
 
 import type { Request, Response, NextFunction } from "express";
+import * as z from 'zod';
+
 const AUTH0_DOMAIN = 'dev-1yffugckd6d5gydc.us.auth0.com';
 
 
@@ -17,7 +19,25 @@ export default async function checkIdentity (req: Request, res: Response, next: 
       }
     });
     const userinfojson = await userinfo.json();
-    req.body.user = userinfojson;
+    
+    const UserInfoJsonSchema = z.object({
+      name: z.string(),
+      email: z.string(),
+      phone: z.string().nullable().optional(),
+      clique_ledger_app_uid: z.string()
+    }).catchall(z.unknown());
+    
+    const parsedData = UserInfoJsonSchema.parse(userinfojson);
+    console.log('Validated Data:', parsedData);
+
+    const user = {
+      user_name: parsedData.name,
+      user_email: parsedData.email,
+      user_id: parsedData.clique_ledger_app_uid,
+      user_phone: parsedData.phone
+    }
+
+    req.body.user = user;
     console.log(userinfojson)
     next();
   } catch(err) {
