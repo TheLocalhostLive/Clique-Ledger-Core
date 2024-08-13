@@ -155,6 +155,7 @@ router.delete('/:userId', async (req: Request, res: Response) => {
                 status: "FAILED",
                 error: "User not found"
             });
+            return;
         }
         await prisma.user.delete({
             where:{
