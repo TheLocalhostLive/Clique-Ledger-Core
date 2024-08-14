@@ -114,7 +114,8 @@ const createTransactionRoute = (io: SocketIOServer) => {
         });
       }
       if(transactions == null){
-        return res.json([]);
+        res.json([]);
+        return;
       }
       const formattedTransactions = transactions.map(transaction => ({
         transaction_id: transaction.transaction_id,
