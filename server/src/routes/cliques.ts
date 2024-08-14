@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import {  PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { error } from 'console';
 import checkAdmin from '../middlewares/checkAdmin';
 import generateCliqueId from '../controllers/generateCliqueId';
@@ -18,7 +18,7 @@ router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => 
     const allRecords = await prisma.clique.findMany({
       include: {
         members: {
-          where:{
+          where: {
             is_active: true
           },
           include: {
@@ -49,15 +49,13 @@ router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => 
     const transformedRecords = allRecords.map(clique => ({
       clique_id: clique.clique_id,
       clique_name: clique.clique_name,
-      admins: clique.members
-        .filter(member => member.is_admin)
-        .map(member => ({
-          member_id: member.user_id,
-          member_name: member.user.user_name
-        })),
-      members: clique.members.map(member => ({
-        member_id: member.user_id,
-        member_name: member.user.user_name
+      members: clique.members
+      .filter(member => member.is_active)
+      .map(member => ({
+        user_id: member.user_id,
+        member_id: member.member_id,
+        member_name: member.user.user_name,
+        is_admin: member.is_admin,
       })),
       is_fund: clique.is_fund,
       fund: clique.fund,
@@ -96,29 +94,27 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
       }
     });
 
-      const newMember = await prisma.member.create({
-        data: {
-          member_id: await generateMemberId(),
-          user_id: req.body.user.user_id as string,
-          clique_id: newClique.clique_id,
-          is_admin: true,
-          joined_at: new Date(),
-          amount: 0,
-          due: false,
-        }
-      });
+    const newMember = await prisma.member.create({
+      data: {
+        member_id: await generateMemberId(),
+        user_id: req.body.user.user_id as string,
+        clique_id: newClique.clique_id,
+        is_admin: true,
+        joined_at: new Date(),
+        amount: 0,
+        due: false,
+      }
+    });
 
     const transformedClique = {
       clique_id: newClique.clique_id,
       clique_name: newClique.clique_name,
-      admins:{
-          member_id: newMember.user_id,
-          member_name: req.body.user.user_name
-        },
-      members:{
-        member_id: newMember.user_id,
-        member_name: req.body.user.user_name
-        },
+      members: {
+        user_id: newMember.user_id,
+        member_id: newMember.member_id,
+        member_name: req.body.user.user_name,
+        is_admin: true,
+      },
       isFund: newClique.is_fund,
       fund: newClique.fund,
       isActive: newClique.is_active
@@ -142,7 +138,7 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
       },
       include: {
         members: {
-          where:{
+          where: {
             is_active: true
           },
           include: {
@@ -165,15 +161,13 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
     const transformedClique = {
       clique_id: clique.clique_id,
       clique_name: clique.clique_name,
-      admins: clique.members
-        .filter(member => member.is_admin) // Filter admins
-        .map(member => ({
-          member_id: member.user_id,
-          member_name: member.user.user_name
-        })),
-      members: clique.members.map(member => ({
-        member_id: member.user_id,
-        member_name: member.user.user_name
+      members: clique.members
+      .filter(member => member.is_active)
+      .map(member => ({
+        user_id: member.user_id,
+        member_id: member.member_id,
+        member_name: member.user.user_name,
+        is_admin: member.is_admin,
       })),
       isFund: clique.is_fund,
       fund: clique.fund,
@@ -189,9 +183,9 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
 
 // Update clique name using clique id
 router.patch('/:cliqueId', async (req: Request, res: Response) => {
-  try{
-    const cliqueId : string = req.params.cliqueId;
-    const name : string = req.body.name;
+  try {
+    const cliqueId: string = req.params.cliqueId;
+    const name: string = req.body.name;
 
     const existingClique = await prisma.clique.findUnique({
       where: {
@@ -224,8 +218,8 @@ router.patch('/:cliqueId', async (req: Request, res: Response) => {
 
 // Delete a clique using clique id
 router.delete('/:cliqueId', async (req: Request, res: Response) => {
-  try{
-    const cliqueId : string = req.params.cliqueId;
+  try {
+    const cliqueId: string = req.params.cliqueId;
 
     const deletedClique = await prisma.clique.delete({
       where: {
@@ -237,7 +231,7 @@ router.delete('/:cliqueId', async (req: Request, res: Response) => {
       res.status(404).json({ field_name: 'cliqueId', status: 'NOT FOUND' });
       return;
     }
-    
+
     // Delete all associated transactions
     await prisma.transaction.deleteMany({
       where: {
@@ -312,7 +306,7 @@ router.post('/:cliqueId/members/', checkAdmin, async (req: Request, res: Respons
           member_name: user.user_name
         });
       }
-      else{
+      else {
         res.status(404).json({
           status: 'FAILURE',
           message: `User with user_id ${userId} not found`,
@@ -342,9 +336,9 @@ router.post('/:cliqueId/members/', checkAdmin, async (req: Request, res: Respons
 
 
 // remove a member
-router.delete('/clique/:cliqueId/members/', checkAdmin, async (req: Request, res: Response) =>{
+router.delete('/clique/:cliqueId/members/', checkAdmin, async (req: Request, res: Response) => {
   try {
-    const cliqueId : string = req.params.cliqueId;
+    const cliqueId: string = req.params.cliqueId;
     const userIds: string[] = req.body;
 
     // Check if userIds is an array
@@ -358,8 +352,8 @@ router.delete('/clique/:cliqueId/members/', checkAdmin, async (req: Request, res
 
     for (const userId of userIds) {
       await prisma.member.update({
-        data: {is_active: false},
-        where: {member_id: userId},
+        data: { is_active: false },
+        where: { member_id: userId },
       });
     }
     res.status(204).json({

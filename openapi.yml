@@ -245,7 +245,7 @@ paths:
             type: string
             example: U00002
         - in: query
-          name: clique
+          name: cliqueId
           description: This contains cliques Id
           schema:
             type: string
@@ -305,6 +305,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/TransactionResponse"
                 status: SUCCESS
+
   /transactions/{transactionId}:
       get:
         tags: 
@@ -317,7 +318,52 @@ paths:
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/TransactionResponse' 
+                  $ref: '#/components/schemas/TransactionResponse'
+
+      delete:
+        tags:
+          - Transactions
+        parameters:
+          - in: path
+            name: transactionId
+            required: true
+            schema:
+              type: string
+            description: The ID of the transaction to delete.
+        responses:
+          '204':
+            description: Transaction deleted successfully.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Transaction deleted successfully
+          '404':
+            description: Transaction not found.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Transaction not found
+          '500':
+            description: Internal server error.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: An error occurred while deleting the transaction
+        security:
+          - bearerAuth: []
+
       
   /transaction/{transactionId}/verify/accept:
     patch:
@@ -718,28 +764,24 @@ components:
         name:
           type: string
           example: clique name
-        admins:
-          type: array
-          items:
-            type: object
-            properties:
-              member_id:
-                type: string
-                example: M00001
-              member_name:
-                type: string
-                example: Admin Name
         members:
           type: array
           items:
             type: object
             properties:
+              user_id:
+                type: string
+                example: U00001
               member_id:
                 type: string
                 example: M00001
               member_name:
                 type: string
                 example: Member Name
+              is_admin:
+                type: boolean
+                example: true
+              
         is_fund:
           type: boolean
           example: true
@@ -757,6 +799,9 @@ components:
           type:
             type: string
             example: spend
+          cliqueId:
+            type: string
+            example: C000001
           sender:
             type: string
             example: M00002

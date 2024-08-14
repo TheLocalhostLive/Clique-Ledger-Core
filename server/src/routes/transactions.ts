@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import verifySender from "../middlewares/verifySender";
 import generateTransactionId from '../controllers/generateTransactionId';
 import { userSocketMap } from '../app';
@@ -28,7 +28,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
 
       // Construct the where condition
       const where: { [key: string]: any } = {};
-      const memberId = req.body.member.member_id; 
+      const memberId = req.body.member.member_id;
       if (memberId) {
         where.sender_id = memberId;
       }
@@ -120,7 +120,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
   //to create a new transaction
   router.post('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
     try {
-      const { type, amount, description, cliqueId, participants } = req.body;    
+      const { type, amount, description, cliqueId, participants } = req.body;
 
       // Create new transaction
       const newTransaction = await prisma.transaction.create({
@@ -136,24 +136,30 @@ const createTransactionRoute = (io: SocketIOServer) => {
 
       // Create spend records and collect participant details
       const formattedParticipants = [];
+
       for (const participant of participants) {
         const receiverId = participant.id;
         const receiverAmount = parseFloat(participant.amount);
 
-        await prisma.spend.create({
-          data: {
-            transaction_id: newTransaction.transaction_id,
-            member_id: receiverId,
-            amount: receiverAmount,
-          },
-        });
-
         const member = await prisma.member.findUnique({
-          where: { member_id: receiverId },
-          include: { user: true },
+          include: {
+            user: true,
+          },
+          where: {
+            member_id: receiverId,
+            is_active: true,
+          }
         });
 
         if (member) {
+          await prisma.spend.create({
+            data: {
+              transaction_id: newTransaction.transaction_id,
+              member_id: receiverId,
+              amount: receiverAmount,
+            },
+          });
+          
           formattedParticipants.push({
             member_id: member.member_id,
             member_name: member.user.user_name,
@@ -163,8 +169,8 @@ const createTransactionRoute = (io: SocketIOServer) => {
       }
 
       const senderMember = await prisma.member.findUnique({
-        where: { member_id: req.body.member.member_id },
         include: { user: true },
+        where: { member_id: req.body.member.member_id },
       });
 
       // Broadcast the transaction to all members of the clique
@@ -268,7 +274,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
       res.status(500).json({ error: 'An error occurred while getting transaction details' });
     }
   });
-  
+
   //delete a transaction
   router.delete('/:transactionId', async (req: Request, res: Response) => {
     try {
