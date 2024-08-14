@@ -25,72 +25,97 @@ const createTransactionRoute = (io: SocketIOServer) => {
       const { receiver, cliqueId, from_date, to_date } = req.query;
       const limit = 10;
       const offset = 2;
-
-      // Construct the where condition
-      const where: { [key: string]: any } = {};
-      const memberId = req.body.member.member_id;
-      if (memberId) {
-        where.sender_id = memberId;
-      }
-
-      if (cliqueId) {
-        where.clique_id = cliqueId;
-      }
-
-      if (from_date || to_date) {
-        if (!where.AND) {
-          where.AND = [];
+      let transactions = null;
+      if (receiver || cliqueId || from_date || to_date) {
+        // Construct the where condition
+        const where: { [key: string]: any } = {};
+        const memberId = req.body.member.member_id;
+        if (memberId) {
+          where.sender_id = memberId;
         }
 
-        const dateFilter: { [key: string]: Date } = {};
-
-        if (from_date && typeof from_date === 'string') {
-          dateFilter.gte = new Date(from_date);
+        if (cliqueId) {
+          where.clique_id = cliqueId;
         }
 
-        if (to_date && typeof to_date === 'string') {
-          dateFilter.lte = new Date(to_date);
+        if (from_date || to_date) {
+          if (!where.AND) {
+            where.AND = [];
+          }
+
+          const dateFilter: { [key: string]: Date } = {};
+
+          if (from_date && typeof from_date === 'string') {
+            dateFilter.gte = new Date(from_date);
+          }
+
+          if (to_date && typeof to_date === 'string') {
+            dateFilter.lte = new Date(to_date);
+          }
+
+          where.AND.push({ done_at: dateFilter });
         }
 
-        where.AND.push({ done_at: dateFilter });
-      }
+        if (receiver) {
+          if (!where.AND) {
+            where.AND = [];
+          }
 
-      if (receiver) {
-        if (!where.AND) {
-          where.AND = [];
+          where.AND.push({
+            spend: {
+              some: {
+                member_id: receiver
+              }
+            }
+          });
         }
-
-        where.AND.push({
-          spend: {
-            some: {
-              member_id: receiver
+        transactions = await prisma.transaction.findMany({
+          where: where,
+          take: limit,
+          skip: offset,
+          include: {
+            spend: {
+              include: {
+                member: {
+                  include: {
+                    user: true
+                  }
+                }
+              }
+            },
+            sender: {
+              include: {
+                user: true
+              }
             }
           }
         });
       }
-
-      const transactions = await prisma.transaction.findMany({
-        where: where,
-        take: limit,
-        skip: offset,
-        include: {
-          spend: {
-            include: {
-              member: {
-                include: {
-                  user: true
+      else {
+        transactions = await prisma.transaction.findMany({
+          take: limit,
+          skip: offset,
+          include: {
+            spend: {
+              include: {
+                member: {
+                  include: {
+                    user: true
+                  }
                 }
               }
-            }
-          },
-          sender: {
-            include: {
-              user: true
+            },
+            sender: {
+              include: {
+                user: true
+              }
             }
           }
-        }
-      });
-
+        });
+      }
+      if(transactions == null){
+        return res.json([]);
+      }
       const formattedTransactions = transactions.map(transaction => ({
         transaction_id: transaction.transaction_id,
         amount: transaction.amount,
@@ -159,7 +184,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
               amount: receiverAmount,
             },
           });
-          
+
           formattedParticipants.push({
             member_id: member.member_id,
             member_name: member.user.user_name,
