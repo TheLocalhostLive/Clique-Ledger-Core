@@ -39,19 +39,31 @@ export default function checkCliqueLevelPerms(
 
       const userId = req.body.user.user_id as string;
       
-      const memberInfo = await prisma.member.findFirst({
-        where: {
-          clique_id: cliqueId,
-          user_id: userId,
-        },
-      });
-      req.body.member = memberInfo;
+      let memberInfo;
+      if(permissionName === "admin") {
+        memberInfo = await prisma.member.findFirst({
+          where: {
+            clique_id: cliqueId,
+            user_id: userId,
+            is_admin: true
+          },
+        });
+      } else {
+        memberInfo = await prisma.member.findFirst({
+          where: {
+            clique_id: cliqueId,
+            user_id: userId,
+          },
+        });
+      }
+      
       if (!memberInfo) {
         res.status(403).json({
           message: `You must be a ${permissionName} of the group to perform the operation.`,
         });
         return;
       }
+      req.body.member = memberInfo;
       next();
     };
   }
