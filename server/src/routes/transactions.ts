@@ -28,11 +28,6 @@ const createTransactionRoute = (io: SocketIOServer) => {
       if (receiver || cliqueId || from_date || to_date) {
         // Construct the where condition
         const where: { [key: string]: any } = {};
-        const memberId = req.body.member.member_id;
-        if (memberId) {
-          where.sender_id = memberId;
-        }
-
         if (cliqueId) {
           where.clique_id = cliqueId;
         }
