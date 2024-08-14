@@ -23,8 +23,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
   router.get('/', checkJwt, checkIdentity, checkCliqueLevelPerms("?cliqueId", "member"), async (req: Request, res: Response) => {
     try {
       const { receiver, cliqueId, from_date, to_date } = req.query;
-      const limit = 10;
-      const offset = 2;
+
       let transactions = null;
       if (receiver || cliqueId || from_date || to_date) {
         // Construct the where condition
@@ -71,8 +70,6 @@ const createTransactionRoute = (io: SocketIOServer) => {
         }
         transactions = await prisma.transaction.findMany({
           where: where,
-          take: limit,
-          skip: offset,
           include: {
             spend: {
               include: {
@@ -93,8 +90,6 @@ const createTransactionRoute = (io: SocketIOServer) => {
       }
       else {
         transactions = await prisma.transaction.findMany({
-          take: limit,
-          skip: offset,
           include: {
             spend: {
               include: {
