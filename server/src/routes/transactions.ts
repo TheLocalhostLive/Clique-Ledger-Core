@@ -20,7 +20,7 @@ const checkJwt = auth();
 // }
 
 const createTransactionRoute = (io: SocketIOServer) => {
-  router.get('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
+  router.get('/', checkJwt, checkIdentity, checkCliqueLevelPerms("?cliqueId", "member"), async (req: Request, res: Response) => {
     try {
       const { receiver, cliqueId, from_date, to_date } = req.query;
       const limit = 10;

@@ -285,8 +285,8 @@ paths:
                 type: array
                 items:
                   oneOf:
-                    - $ref: "#/components/schemas/TransactionResponse"
-                    - $ref: "#/components/schemas/TransactionResponse"
+                    - $ref: "#/components/schemas/TransactionTypeSpendResponse"
+                    - $ref: "#/components/schemas/TransactionTypeSpendResponse"
                   
     post:
       tags:
@@ -303,8 +303,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TransactionResponse"
-                status: SUCCESS
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionTypeSpendResponse"
+               
 
   /transactions/{transactionId}:
       get:
@@ -318,7 +320,7 @@ paths:
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/TransactionResponse'
+                  $ref: '#/components/schemas/TransactionTypeSpendResponse'
 
       delete:
         tags:
@@ -820,7 +822,7 @@ components:
             type: number
             example: 1000
           
-    TransactionResponse:
+    TransactionTypeSpendResponse:
       type: object
       properties:
         transaction_id:
