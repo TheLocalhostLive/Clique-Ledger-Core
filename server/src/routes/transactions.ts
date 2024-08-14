@@ -183,7 +183,9 @@ const createTransactionRoute = (io: SocketIOServer) => {
         transaction_id: newTransaction.transaction_id,
         clique_id: newTransaction.clique_id,
         is_verified: newTransaction.is_verified,
-        type: newTransaction.transaction_type,
+        done_at: newTransaction.done_at,
+        description: newTransaction.description,
+        transaction_type: newTransaction.transaction_type,
         sender: senderMember
           ? {
             member_id: senderMember.member_id,
@@ -191,7 +193,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           }
           : null,
         participants: formattedParticipants,
-        spend_amount: newTransaction.amount,
+        amount: newTransaction.amount,
       };
 
       cliqueMembers.forEach((member) => {
@@ -259,13 +261,15 @@ const createTransactionRoute = (io: SocketIOServer) => {
       const response = {
         transaction_id: transaction.transaction_id,
         clique_id: transaction.clique_id,
-        type: transaction.transaction_type,
+        description: transaction.description,
+        done_at: transaction.done_at,
+        transaction_type: transaction.transaction_type,
         sender: {
           member_id: senderMember.member_id,
           member_name: senderMember.user.user_name
         },
         participants: participants,
-        spend_amount: transaction.amount
+        amount: transaction.amount
       };
 
       res.json(response);
