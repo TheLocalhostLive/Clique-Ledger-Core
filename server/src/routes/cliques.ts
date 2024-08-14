@@ -15,30 +15,40 @@ const checkJwt = auth();
 // get all cliques
 router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => {
   try {
-    const allRecords = await prisma.clique.findMany({
-      include: {
-        members: {
-          where: {
-            is_active: true
-          },
-          include: {
-            user: {
-              select: {
-                user_id: true,
-                user_name: true,
-                mail: true
-              }
-            }
-          }
-        },
-        transactions: {
-          orderBy: {
-            done_at: 'desc'
-          },
-          take: 1, // Get only the latest transaction
+
+  const userId = req.body.user.user_id;
+  const allRecords = await prisma.clique.findMany({
+    where: {
+      members: {
+        some: {
+          user_id: userId,
+          is_active: true
         }
       }
-    });
+    },
+    include: {
+      members: {
+        where: {
+          is_active: true
+        },
+        include: {
+          user: {
+            select: {
+              user_id: true,
+              user_name: true,
+              mail: true
+            }
+          }
+        }
+      },
+      transactions: {
+        orderBy: {
+          done_at: 'desc'
+        },
+        take: 1, // Get only the latest transaction
+      }
+    }
+  });
 
     if (allRecords.length === 0) {
       console.log("No data");
