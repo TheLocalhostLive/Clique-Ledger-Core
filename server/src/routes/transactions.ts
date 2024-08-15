@@ -22,12 +22,16 @@ const checkJwt = auth();
 const createTransactionRoute = (io: SocketIOServer) => {
   router.get('/', checkJwt, checkIdentity, checkCliqueLevelPerms("?cliqueId", "member"), async (req: Request, res: Response) => {
     try {
-      const { receiver, cliqueId, from_date, to_date } = req.query;
+      const { sender, receiver, cliqueId, from_date, to_date } = req.query;
 
       let transactions = null;
-      if (receiver || cliqueId || from_date || to_date) {
+      if (sender || receiver || cliqueId || from_date || to_date) {
         // Construct the where condition
         const where: { [key: string]: any } = {};
+        if (sender) {
+          where.sender_id = sender;
+        }
+        
         if (cliqueId) {
           where.clique_id = cliqueId;
         }
@@ -63,6 +67,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
             }
           });
         }
+        
         transactions = await prisma.transaction.findMany({
           where: where,
           include: {
