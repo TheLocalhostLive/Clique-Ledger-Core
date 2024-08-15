@@ -34,7 +34,7 @@ model Spend {
   transaction_id String
   member_id      String
   amount         Float
-  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id], onDelete: Cascade)
   member         Member      @relation(fields: [member_id], references: [member_id])
 
   @@id([transaction_id, member_id])
@@ -59,8 +59,6 @@ model Member {
   is_active    Boolean       @default(true)
   is_admin     Boolean
   joined_at    DateTime
-  amount       Float
-  due          Boolean
   user         User          @relation(fields: [user_id], references: [user_id])
   clique       Clique        @relation(fields: [clique_id], references: [clique_id])
   spends       Spend[]

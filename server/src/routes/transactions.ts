@@ -31,7 +31,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
         if (sender) {
           where.sender_id = sender;
         }
-        
+
         if (cliqueId) {
           where.clique_id = cliqueId;
         }
@@ -67,7 +67,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
             }
           });
         }
-        
+
         transactions = await prisma.transaction.findMany({
           where: where,
           include: {
@@ -108,7 +108,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           }
         });
       }
-      if(transactions == null){
+      if (transactions == null) {
         res.json([]);
         return;
       }
@@ -142,37 +142,63 @@ const createTransactionRoute = (io: SocketIOServer) => {
   router.post('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
     try {
       const { type, amount, description, cliqueId, participants } = req.body;
+      const senderId = req.body.member.member_id;
+      const parsedAmount = parseFloat(amount);
 
-      // Create new transaction
-      const newTransaction = await prisma.transaction.create({
-        data: {
-          transaction_id: await generateTransactionId(),
-          transaction_type: type,
-          sender_id: req.body.member.member_id,
-          amount: parseFloat(amount),
-          description: description,
-          clique_id: cliqueId,
-        },
-      });
+      if (isNaN(parsedAmount)) {
+        res.status(400).json({ error: 'Invalid amount' });
+        return;
+      }
 
-      // Create spend records and collect participant details
-      const formattedParticipants = [];
-
-      for (const participant of participants) {
-        const receiverId = participant.id;
-        const receiverAmount = parseFloat(participant.amount);
-
-        const member = await prisma.member.findUnique({
-          include: {
-            user: true,
+      // Start a Prisma transaction
+      await prisma.$transaction(async (prisma) => {
+        // Create new transaction
+        const newTransaction = await prisma.transaction.create({
+          data: {
+            transaction_id: await generateTransactionId(),
+            transaction_type: type,
+            sender_id: senderId,
+            amount: parsedAmount,
+            description: description,
+            clique_id: cliqueId,
           },
-          where: {
-            member_id: receiverId,
-            is_active: true,
-          }
         });
 
-        if (member) {
+        // Update sender's ledger
+        const senderLedger = await prisma.ledger.findUnique({
+          where: { member_id: senderId },
+        });
+
+        if (!senderLedger) {
+          throw new Error('Invalid sender member');
+        }
+
+        const updatedSenderBalance = senderLedger.amount + parsedAmount;
+        const senderUpdateDue = updatedSenderBalance < 0;
+        await prisma.ledger.update({
+          where: { member_id: senderId },
+          data: { amount: updatedSenderBalance, is_due: senderUpdateDue },
+        });
+
+        // Handle spend records and update participants' ledgers
+        const formattedParticipants = [];
+        await Promise.all(participants.map(async (participant) => {
+          const receiverId = participant.id;
+          const receiverAmount = parseFloat(participant.amount);
+
+          if (isNaN(receiverAmount)) {
+            throw new Error('Invalid participant amount');
+          }
+
+          const member = await prisma.member.findUnique({
+            include: { user: true },
+            where: { member_id: receiverId, is_active: true },
+          });
+
+          if (!member) {
+            throw new Error('Invalid receiver member');
+          }
+
           await prisma.spend.create({
             data: {
               transaction_id: newTransaction.transaction_id,
@@ -186,61 +212,73 @@ const createTransactionRoute = (io: SocketIOServer) => {
             member_name: member.user.user_name,
             part_amount: receiverAmount,
           });
-        }
-      }
 
-      const senderMember = await prisma.member.findUnique({
-        include: { user: true },
-        where: { member_id: req.body.member.member_id },
-      });
+          const receiverLedger = await prisma.ledger.findUnique({
+            where: { member_id: receiverId },
+          });
 
-      // Broadcast the transaction to all members of the clique
-      const cliqueMembers = await prisma.member.findMany({
-        where: { clique_id: cliqueId },
-        select: { user_id: true },
-      });
-
-      const transactionDetails = {
-        transaction_id: newTransaction.transaction_id,
-        clique_id: newTransaction.clique_id,
-        is_verified: newTransaction.is_verified,
-        done_at: newTransaction.done_at,
-        description: newTransaction.description,
-        transaction_type: newTransaction.transaction_type,
-        sender: senderMember
-          ? {
-            member_id: senderMember.member_id,
-            member_name: senderMember.user.user_name,
+          if (!receiverLedger) {
+            throw new Error('Invalid receiver member');
           }
-          : null,
-        participants: formattedParticipants,
-        amount: newTransaction.amount,
-      };
 
-      cliqueMembers.forEach((member) => {
-        const socketId = userSocketMap.get(member.user_id);
-        if (socketId) {
-          io.to(socketId).emit('newTransaction', transactionDetails);
-        }
+          const updatedReceiverBalance = receiverLedger.amount - receiverAmount;
+          const receiverUpdateDue = updatedReceiverBalance < 0;
+          await prisma.ledger.update({
+            where: { member_id: receiverId },
+            data: { amount: updatedReceiverBalance, is_due: receiverUpdateDue },
+          });
+        }));
+
+        // Broadcast the transaction to all members of the clique
+        const senderMember = await prisma.member.findUnique({
+          include: { user: true },
+          where: { member_id: senderId },
+        });
+
+        const cliqueMembers = await prisma.member.findMany({
+          where: { clique_id: cliqueId },
+          select: { user_id: true },
+        });
+
+        const transactionDetails = {
+          transaction_id: newTransaction.transaction_id,
+          clique_id: newTransaction.clique_id,
+          is_verified: newTransaction.is_verified,
+          done_at: newTransaction.done_at,
+          description: newTransaction.description,
+          transaction_type: newTransaction.transaction_type,
+          sender: senderMember
+            ? { member_id: senderMember.member_id, member_name: senderMember.user.user_name }
+            : null,
+          participants: formattedParticipants,
+          amount: newTransaction.amount,
+        };
+
+        // Broadcast to all clique members
+        await Promise.all(cliqueMembers.map(member => {
+          const socketId = userSocketMap.get(member.user_id);
+          if (socketId) {
+            io.to(socketId).emit('newTransaction', transactionDetails);
+          }
+        }));
+
+        // Send the response
+        res.status(201).json(transactionDetails);
       });
-
-      // Send the response
-      res.status(201).json(transactionDetails);
-
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'An error occurred when performing the transaction' });
     }
   });
 
-  //get a specific transaction
+  // Get a specific transaction
   router.get('/:transactionId', async (req: Request, res: Response) => {
     try {
       const transactionId = req.params.transactionId;
 
       // Fetch the transaction
       const transaction = await prisma.transaction.findUnique({
-        where: { transaction_id: transactionId }
+        where: { transaction_id: transactionId },
       });
 
       if (!transaction) {
@@ -251,7 +289,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
       // Fetch the sender member details
       const senderMember = await prisma.member.findUnique({
         where: { member_id: transaction.sender_id },
-        include: { user: true } // Fetch associated user details from the Member table
+        include: { user: true },
       });
 
       if (!senderMember) {
@@ -264,18 +302,16 @@ const createTransactionRoute = (io: SocketIOServer) => {
         where: { transaction_id: transactionId },
         include: {
           member: {
-            include: {
-              user: true // Include user details for participants
-            }
-          }
-        }
+            include: { user: true },
+          },
+        },
       });
 
       // Format participants
       const participants = receivers.map(receiver => ({
         member_id: receiver.member.member_id,
         member_name: receiver.member.user.user_name,
-        part_amount: receiver.amount
+        part_amount: receiver.amount,
       }));
 
       // Prepare the response
@@ -287,10 +323,10 @@ const createTransactionRoute = (io: SocketIOServer) => {
         transaction_type: transaction.transaction_type,
         sender: {
           member_id: senderMember.member_id,
-          member_name: senderMember.user.user_name
+          member_name: senderMember.user.user_name,
         },
         participants: participants,
-        amount: transaction.amount
+        amount: transaction.amount,
       };
 
       res.json(response);
@@ -300,7 +336,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
     }
   });
 
-  //delete a transaction
+  // Delete a transaction
   router.delete('/:transactionId', async (req: Request, res: Response) => {
     try {
       const { transactionId } = req.params;
@@ -315,29 +351,70 @@ const createTransactionRoute = (io: SocketIOServer) => {
         return;
       }
 
-      // Delete the transaction
-      await prisma.transaction.delete({
-        where: { transaction_id: transactionId },
-      });
+      // Start a Prisma transaction
+      await prisma.$transaction(async (prisma) => {
+        // Update sender's ledger
+        const senderLedger = await prisma.ledger.findUnique({
+          where: { member_id: transaction.sender_id },
+        });
 
-      // Notify members of the clique
-      const cliqueMembers = await prisma.member.findMany({
-        where: { clique_id: transaction.clique_id },
-        select: { user_id: true },
-      });
-
-      cliqueMembers.forEach((member) => {
-        const socketId = userSocketMap.get(member.user_id);
-        if (socketId) {
-          io.to(socketId).emit('transactionDeleted', {
-            transaction_id: transactionId,
-            clique_id: transaction.clique_id,
-            message: 'A transaction has been deleted',
-          });
+        if (!senderLedger) {
+          throw new Error('Invalid sender member');
         }
-      });
 
-      res.status(204).json({ message: 'Transaction deleted successfully' });
+        const updatedSenderBalance = senderLedger.amount - transaction.amount;
+        const senderUpdateDue = updatedSenderBalance < 0;
+        await prisma.ledger.update({
+          where: { member_id: transaction.sender_id },
+          data: { amount: updatedSenderBalance, is_due: senderUpdateDue },
+        });
+
+        // Update receivers' ledgers
+        const receivers = await prisma.spend.findMany({
+          where: { transaction_id: transactionId },
+        });
+
+        await Promise.all(receivers.map(async (receiver) => {
+          const receiverLedger = await prisma.ledger.findUnique({
+            where: { member_id: receiver.member_id },
+          });
+
+          if (!receiverLedger) {
+            throw new Error('Invalid receiver member');
+          }
+
+          const updatedReceiverBalance = receiverLedger.amount + transaction.amount;
+          const receiverUpdateDue = updatedReceiverBalance < 0;
+          await prisma.ledger.update({
+            where: { member_id: receiver.member_id },
+            data: { amount: updatedReceiverBalance, is_due: receiverUpdateDue },
+          });
+        }));
+
+        // Delete the transaction
+        await prisma.transaction.delete({
+          where: { transaction_id: transactionId },
+        });
+
+        // Notify members of the clique
+        const cliqueMembers = await prisma.member.findMany({
+          where: { clique_id: transaction.clique_id },
+          select: { user_id: true },
+        });
+
+        await Promise.all(cliqueMembers.map(member => {
+          const socketId = userSocketMap.get(member.user_id);
+          if (socketId) {
+            io.to(socketId).emit('transactionDeleted', {
+              transaction_id: transactionId,
+              clique_id: transaction.clique_id,
+              message: 'A transaction has been deleted',
+            });
+          }
+        }));
+
+        res.status(204).send();
+      });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'An error occurred while deleting the transaction' });
