@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { error } from 'console';
-import checkAdmin from '../middlewares/checkAdmin';
 import generateCliqueId from '../controllers/generateCliqueId';
 import generateMemberId from '../controllers/generateMemberId';
 import { auth } from 'express-oauth2-jwt-bearer';
@@ -112,8 +111,6 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
         clique_id: newClique.clique_id,
         is_admin: true,
         joined_at: new Date(),
-        amount: 0,
-        due: false,
       }
     });
 
@@ -301,9 +298,16 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
             clique_id: cliqueId,
             is_admin: false,
             joined_at: new Date(),
-            amount: 0,
-            due: false,
           },
+        });
+
+        await prisma.ledger.create({
+          data:{
+            member_id: newMember.member_id,
+            clique_id: newMember.clique_id,
+            amount: 0,
+            is_due: false
+          }
         });
 
         newMembers.push({
@@ -312,8 +316,6 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
           clique_id: newMember.clique_id,
           is_admin: newMember.is_admin,
           joined_at: newMember.joined_at,
-          amount: newMember.amount,
-          due: newMember.due,
           member_name: user.user_name
         });
       }
@@ -349,7 +351,6 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
 // remove a member
 router.delete('/clique/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerms(":/cliqueId", "admin"), async (req: Request, res: Response) => {
   try {
-    const cliqueId: string = req.params.cliqueId;
     const userIds: string[] = req.body;
 
     // Check if userIds is an array
