@@ -66,7 +66,7 @@ router.get('/user/:userId', checkJwt, async(req: Request, res: Response) => {
             return;
         }
         res.json({
-            staus: "SUCCESS",
+            status: "SUCCESS",
             data:{
                 id: user.user_id,
                 name: user.user_name,
@@ -92,7 +92,7 @@ router.get('/email/:email',checkJwt, async(req: Request, res: Response) => {
             return;
         }
         res.json({
-            staus: "SUCCESS",
+            status: "SUCCESS",
             data:{
                 id: user.user_id,
                 name: user.user_name,
