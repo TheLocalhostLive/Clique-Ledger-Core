@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import {  PrismaClient } from '@prisma/client';
 import generateUserId from '../controllers/generateUserId';
 import { auth } from 'express-oauth2-jwt-bearer';
+import checkIdentity from '../middlewares/checkIdentity';
 const prisma = new PrismaClient()
 
 const router = Router();
@@ -54,7 +55,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 //get user by id
-router.get('/:userId', async(res: Response, req: Request) => {
+router.get('/:userId', checkJwt, async(res: Response, req: Request) => {
     try{
         const userId = req.params.userId;
         const user = await prisma.user.findUnique({
@@ -104,7 +105,7 @@ router.get('/:email',checkJwt, async(res: Response, req: Request) => {
 });
 
 //update user by id
-router.patch('/:email', async(req: Request, res: Response) =>{
+router.patch('/:userId', checkJwt, checkIdentity, async(req: Request, res: Response) =>{
     try{
          const userId = req.params.userId;
          const { userName, email, phone } = req.body;
@@ -167,7 +168,7 @@ router.patch('/:email', async(req: Request, res: Response) =>{
 });
 
 //delete an user
-router.delete('/:userId', async (req: Request, res: Response) => {
+router.delete('/:userId', checkJwt, checkIdentity, async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
         const findUser = await prisma.user.findUnique({
