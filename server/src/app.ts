@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import cliques from './routes/cliques';
 import createTransactionRoute from './routes/transactions';
 import users from './routes/users';
+import ledgers from './routes/ledgers';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/api/v1/cliques', cliques);
 app.use('/api/v1/transactions', createTransactionRoute(io));
 app.use('/api/v1/users', users);
+app.use('/api/v1/ledgers', ledgers);
 
 // Test route
 app.get('/', (req: Request, res: Response) => {
