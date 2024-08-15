@@ -49,6 +49,7 @@ model Clique {
   is_active    Boolean       @default(true)
   members      Member[]
   transactions Transaction[]
+  ledger       Ledger[]
 }
 
 model Member {
@@ -69,9 +70,11 @@ model Member {
 
 model Ledger {
   member_id String
+  clique_id String
   amount    Float
   is_due    Boolean
   member    Member  @relation(fields: [member_id], references: [member_id])
+  clique    Clique  @relation(fields: [clique_id], references: [clique_id])
 
   @@id([member_id])
 }
