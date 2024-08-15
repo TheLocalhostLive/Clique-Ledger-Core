@@ -6,6 +6,7 @@ import generateCliqueId from '../controllers/generateCliqueId';
 import generateMemberId from '../controllers/generateMemberId';
 import { auth } from 'express-oauth2-jwt-bearer';
 import checkIdentity from '../middlewares/checkIdentity';
+import checkCliqueLevelPerms from '../middlewares/checkCliqueLevelPerms';
 
 const prisma = new PrismaClient()
 
@@ -264,7 +265,7 @@ router.delete('/:cliqueId', async (req: Request, res: Response) => {
 });
 
 //add members in a clique
-router.post('/:cliqueId/members/', checkAdmin, async (req: Request, res: Response) => {
+router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerms(":/cliqueId", "admin"), async (req: Request, res: Response) => {
   try {
     const cliqueId: string = req.params.cliqueId;
     const userIds: string[] = req.body;
@@ -346,7 +347,7 @@ router.post('/:cliqueId/members/', checkAdmin, async (req: Request, res: Respons
 
 
 // remove a member
-router.delete('/clique/:cliqueId/members/', checkAdmin, async (req: Request, res: Response) => {
+router.delete('/clique/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerms(":/cliqueId", "admin"), async (req: Request, res: Response) => {
   try {
     const cliqueId: string = req.params.cliqueId;
     const userIds: string[] = req.body;
