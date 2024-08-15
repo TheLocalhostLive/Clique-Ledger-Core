@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import {  PrismaClient } from '@prisma/client';
 import generateUserId from '../controllers/generateUserId';
-
+import { auth } from 'express-oauth2-jwt-bearer';
 const prisma = new PrismaClient()
 
 const router = Router();
+const checkJwt = auth();
 
 
 //get all users
@@ -78,11 +79,35 @@ router.get('/:userId', async(res: Response, req: Request) => {
     }
 });
 
-//update user by id
-router.patch('/:userId', async(req: Request, res: Response) =>{
+//get user by email
+router.get('/:email',checkJwt, async(res: Response, req: Request) => {
     try{
-         const { userName, email, phone } = req.body;
+        const email = req.params.email;
+        const user = await prisma.user.findUnique({
+            where: { mail: email }
+        });
+        if(!user){
+            res.status(404).json({ status: 'NOT FOUND' });
+            return;
+        }
+        res.json({
+            staus: "SUCCESS",
+            data:{
+                id: user.user_id,
+                name: user.user_name,
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'An error occurred while fetching user' });
+    }
+});
+
+//update user by id
+router.patch('/:email', async(req: Request, res: Response) =>{
+    try{
          const userId = req.params.userId;
+         const { userName, email, phone } = req.body;
          const getUser = await prisma.user.findUnique({
             where:{user_id: userId}
          })
