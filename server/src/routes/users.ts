@@ -55,7 +55,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 //get user by id
-router.get('/:userId', checkJwt, async(res: Response, req: Request) => {
+router.get('/user/:userId', checkJwt, async(req: Request, res: Response) => {
     try{
         const userId = req.params.userId;
         const user = await prisma.user.findUnique({
@@ -81,7 +81,7 @@ router.get('/:userId', checkJwt, async(res: Response, req: Request) => {
 });
 
 //get user by email
-router.get('/:email',checkJwt, async(res: Response, req: Request) => {
+router.get('/email/:email',checkJwt, async(req: Request, res: Response) => {
     try{
         const email = req.params.email;
         const user = await prisma.user.findUnique({
