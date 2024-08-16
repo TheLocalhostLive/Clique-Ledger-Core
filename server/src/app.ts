@@ -29,33 +29,33 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello, this is get ...');
 });
 
-// Socket.io connection setup
-const userSocketMap = new Map<string, string>();
+type UserSocket = {
+  userId: string;
+  socketId: string;
+};
+
 
 io.on('connection', (socket) => {
   console.log('New user connected:', socket.id);
-
-  socket.on('userLoggedIn', (userId: string) => {
-    userSocketMap.set(userId, socket.id);
-    console.log(`User ${userId} is associated with socket ${socket.id}`);
-  });
-
-  socket.on('userLoggedOut', (userId: string) => {
-    if (userSocketMap.has(userId)) {
-      userSocketMap.delete(userId);
-      console.log(`User ${userId} has logged out and socket ${socket.id} is removed`);
+  
+  socket.on('join-rooms', (rooms: string) => {
+    console.log(rooms);
+    rooms = JSON.parse(rooms);
+    if (!Array.isArray(rooms) || !rooms.every(room => typeof room === 'string')) {
+      console.error('Invalid rooms data:', rooms);
+      return;
     }
+
+    rooms.forEach((room) => {
+      socket.join(room);
+      console.log(`User joined room: ${room}`);
+    });
   });
+
+  
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
-    for (const [userId, socketId] of userSocketMap.entries()) {
-      if (socketId === socket.id) {
-        userSocketMap.delete(userId);
-        console.log(`User ${userId} has been removed from map due to disconnection`);
-        break;
-      }
-    }
   });
 
   socket.on('error', (error) => {
@@ -63,7 +63,7 @@ io.on('connection', (socket) => {
   });
 });
 
-export { io, userSocketMap };
+export { io };
 
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);

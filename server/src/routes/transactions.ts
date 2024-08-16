@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import verifySender from "../middlewares/verifySender";
 import generateTransactionId from '../controllers/generateTransactionId';
-import { userSocketMap } from '../app';
 import { Server as SocketIOServer } from 'socket.io';
 import { auth } from 'express-oauth2-jwt-bearer';
 import checkIdentity from '../middlewares/checkIdentity';
@@ -218,6 +217,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
             member_name: member.user.user_name,
             part_amount: receiverAmount,
           });
+
   
           const receiverLedger = await prisma.ledger.findUnique({
             where: { member_id: receiverId },
@@ -241,10 +241,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           where: { member_id: senderId },
         });
   
-        const cliqueMembers = await prisma.member.findMany({
-          where: { clique_id: cliqueId },
-          select: { user_id: true },
-        });
+       
   
         const transactionDetails = {
           transaction_id: newTransaction.transaction_id,
@@ -260,17 +257,13 @@ const createTransactionRoute = (io: SocketIOServer) => {
           amount: newTransaction.amount,
         };
   
-        // Broadcast to all clique members
-        await Promise.all(cliqueMembers.map(member => {
-          const socketId = userSocketMap.get(member.user_id);
-          if (socketId) {
-            io.to(socketId).emit('newTransaction', transactionDetails);
-          }
-        }));
-  
+        
+        io.to(cliqueId).emit('transaction-created', transactionDetails);
+        console.log(`Transaction ${JSON.stringify(transactionDetails)} send to ${cliqueId}`);
         // Send the response
         res.status(201).json(transactionDetails);
       });
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'An error occurred when performing the transaction' });
@@ -364,6 +357,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           where: { member_id: transaction.sender_id },
         });
 
+
         if (!senderLedger) {
           throw new Error('Invalid sender member');
         }
@@ -385,6 +379,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
             where: { member_id: receiver.member_id },
           });
 
+
           if (!receiverLedger) {
             throw new Error('Invalid receiver member');
           }
@@ -402,23 +397,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           where: { transaction_id: transactionId },
         });
 
-        // Notify members of the clique
-        const cliqueMembers = await prisma.member.findMany({
-          where: { clique_id: transaction.clique_id },
-          select: { user_id: true },
-        });
-
-        await Promise.all(cliqueMembers.map(member => {
-          const socketId = userSocketMap.get(member.user_id);
-          if (socketId) {
-            io.to(socketId).emit('transactionDeleted', {
-              transaction_id: transactionId,
-              clique_id: transaction.clique_id,
-              message: 'A transaction has been deleted',
-            });
-          }
-        }));
-
+        io.to(transaction.clique_id).emit('transaction-deleted',transaction);
         res.status(204).send();
       });
     } catch (err) {
@@ -438,21 +417,12 @@ const createTransactionRoute = (io: SocketIOServer) => {
         data: { is_verified: "accepted" },
       });
 
-      // Notify members of the clique
-      const cliqueMembers = await prisma.member.findMany({
-        where: { clique_id: updatedTransaction.clique_id },
-        select: { user_id: true },
-      });
+    
 
-      cliqueMembers.forEach((member) => {
-        const socketId = userSocketMap.get(member.user_id);
-        if (socketId) {
-          io.to(socketId).emit('transactionUpdated', {
-            transaction_id: transactionId,
-            clique_id: updatedTransaction.clique_id,
-            message: 'A transaction has been accepted',
-          });
-        }
+      io.to(updatedTransaction.clique_id).emit('transaction-updated', {
+        transaction_id: transactionId,
+        clique_id: updatedTransaction.clique_id,
+        message: 'A transaction has been accepted',
       });
 
       res.status(200).json({
@@ -503,23 +473,11 @@ const createTransactionRoute = (io: SocketIOServer) => {
         data: { is_verified: 'rejected' },
       });
 
-      // Fetch members of the clique associated with the transaction
-      const cliqueMembers = await prisma.member.findMany({
-        where: { clique_id: transaction.clique_id },
-        select: { user_id: true },
-      });
-
-      // Notify all members of the clique via WebSocket
-      cliqueMembers.forEach((member) => {
-        const socketId = userSocketMap.get(member.user_id);
-        if (socketId) {
-          io.to(socketId).emit('transactionUpdated', {
-            transaction_id: transactionId,
-            clique_id: transaction.clique_id,
-            message: 'A transaction has been rejected',
-            status: 'rejected',
-          });
-        }
+      io.to(updatedTransaction.clique_id).emit('transaction-updated', {
+        transaction_id: transactionId,
+        clique_id: transaction.clique_id,
+        message: 'A transaction has been rejected',
+        status: 'rejected',
       });
 
       // Send the response back to the client
@@ -595,24 +553,9 @@ const createTransactionRoute = (io: SocketIOServer) => {
         });
       }
 
-      // Notify all members of the clique about the addition
-      const cliqueMembers = await prisma.member.findMany({
-        where: { clique_id: cliqueId },
-        select: { user_id: true },
-      });
+      io.to(cliqueId).emit('transaction-updated', transaction);
 
-      const notification = {
-        transaction_id: transactionId,
-        message: 'New participants have been added to a transaction',
-      };
-
-      cliqueMembers.forEach((member) => {
-        const socketId = userSocketMap.get(member.user_id);
-        if (socketId) {
-          io.to(socketId).emit('transactionUpdated', notification);
-        }
-      });
-
+     
       // Respond to the client
       res.status(204).json({
         status: "SUCCESS",
@@ -675,23 +618,8 @@ const createTransactionRoute = (io: SocketIOServer) => {
         });
       }
 
-      // Notify all members of the clique about the removal
-      const cliqueMembers = await prisma.member.findMany({
-        where: { clique_id: cliqueId },
-        select: { user_id: true },
-      });
 
-      const notification = {
-        transaction_id: transactionId,
-        message: 'Participants have been removed from a transaction',
-      };
-
-      cliqueMembers.forEach((member) => {
-        const socketId = userSocketMap.get(member.user_id);
-        if (socketId) {
-          io.to(socketId).emit('transactionUpdated', notification);
-        }
-      });
+      io.to(cliqueId).emit('transactionUpdated', transaction);
 
       // Respond to the client
       res.status(204).json({
