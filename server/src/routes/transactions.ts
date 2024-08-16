@@ -117,6 +117,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
         description: transaction.description,
         sender: {
           member_id: transaction.sender.member_id,
+          user_id: transaction.sender.user_id,
           member_name: transaction.sender.user.user_name
         },
         clique_id: transaction.clique_id,
@@ -251,7 +252,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           description: newTransaction.description,
           transaction_type: newTransaction.transaction_type,
           sender: senderMember
-            ? { member_id: senderMember.member_id, member_name: senderMember.user.user_name }
+            ? { member_id: senderMember.member_id, member_name: senderMember.user.user_name, user_id: senderMember.user_id }
             : null,
           participants: formattedParticipants,
           amount: newTransaction.amount,
@@ -323,6 +324,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
         sender: {
           member_id: senderMember.member_id,
           member_name: senderMember.user.user_name,
+          user_id: senderMember.user_id
         },
         participants: participants,
         amount: transaction.amount,
