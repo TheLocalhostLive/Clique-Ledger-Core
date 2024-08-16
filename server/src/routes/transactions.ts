@@ -188,6 +188,10 @@ const createTransactionRoute = (io: SocketIOServer) => {
   
         // Handle spend records and update participants' ledgers
         const formattedParticipants: Array<{ member_id: string; member_name: string; part_amount: number }> = [];
+        if(!participants) {
+          res.status(400).json("Invalid participents provided!");
+          return;
+        }
         await Promise.all(participants.map(async (participant: Participant) => {
           const receiverId = participant.id;
           const receiverAmount = parseFloat(participant.amount);
