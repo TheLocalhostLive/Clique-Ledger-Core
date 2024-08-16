@@ -113,7 +113,16 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
         joined_at: new Date(),
       }
     });
-
+    
+    await prisma.ledger.create({
+      data:{
+        member_id: newMember.member_id,
+        clique_id: newMember.clique_id,
+        amount: 0,
+        is_due: false
+      }
+    });
+    
     const transformedClique = {
       clique_id: newClique.clique_id,
       clique_name: newClique.clique_name,
