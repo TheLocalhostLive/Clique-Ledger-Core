@@ -7,6 +7,7 @@ import users from './routes/users';
 import ledgers from './routes/ledgers';
 import getUserInfo from './controllers/getUserInfo';
 import * as z from 'zod';
+import Bimap from 'bidirectional-map';
 import { PrismaClient } from '@prisma/client';
 
 const app = express();
@@ -32,6 +33,9 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello, this is get ...');
 });
 
+/**The key is UID and the value is socket id
+ * Example {'U00001'=>'ahZykmLL'} */
+export const socketUidMap = new Bimap<string>();
 
 io.use(async (socket, next) => {
   const query = socket.handshake.query;
@@ -79,6 +83,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    socketUidMap.deleteValue(socket.id);
   });
 
   socket.on('error', (error) => {
