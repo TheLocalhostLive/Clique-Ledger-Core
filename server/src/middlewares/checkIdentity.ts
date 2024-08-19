@@ -1,9 +1,7 @@
 
 import type { Request, Response, NextFunction } from "express";
 import * as z from 'zod';
-
-const AUTH0_DOMAIN = 'dev-1yffugckd6d5gydc.us.auth0.com';
-
+import getUserInfo from "../controllers/getUserInfo";
 
 export default async function checkIdentity (req: Request, res: Response, next: NextFunction) {
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
@@ -11,34 +9,18 @@ export default async function checkIdentity (req: Request, res: Response, next: 
     res.status(401).send({ message: 'Authorization header missing or invalid' });
     return;
   }
-  console.log(token);
-  try {
-    const userinfo = await fetch(`https://${AUTH0_DOMAIN}/userinfo`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    const userinfojson = await userinfo.json();
+  try{
+    const userInfojson = await getUserInfo(token);
     
-    const UserInfoJsonSchema = z.object({
-      name: z.string(),
-      email: z.string(),
-      phone: z.string().nullable().optional(),
-      clique_ledger_app_uid: z.string()
-    }).catchall(z.unknown());
-    
-    const parsedData = UserInfoJsonSchema.parse(userinfojson);
-    console.log('Validated Data:', parsedData);
-
     const user = {
-      user_name: parsedData.name,
-      user_email: parsedData.email,
-      user_id: parsedData.clique_ledger_app_uid,
-      user_phone: parsedData.phone
+      user_name: userInfojson.name,
+      user_email: userInfojson.email,
+      user_id: userInfojson.clique_ledger_app_uid,
+      user_phone: userInfojson.phone
     }
 
     req.body.user = user;
-    console.log(userinfojson)
+    console.log(userInfojson);
     next();
   } catch(err) {
     console.log("Error");
