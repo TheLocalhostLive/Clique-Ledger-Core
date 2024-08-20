@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { error } from 'console';
 import generateCliqueId from '../controllers/generateCliqueId';
 import generateMemberId from '../controllers/generateMemberId';
 import { auth } from 'express-oauth2-jwt-bearer';
@@ -197,8 +196,8 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
     };
 
     res.status(200).json(transformedClique);
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'An error occurred while fetching the clique' });
   }
 });
@@ -233,7 +232,7 @@ router.patch('/:cliqueId', async (req: Request, res: Response) => {
 
     return res.status(200).json({ field_name: 'name', status: 'SUCCESS' });
   } catch (err) {
-    console.error(error);
+    console.error(err);
     return res.status(500).json({ error: 'An error occurred while updating the clique' });
   }
 });
@@ -269,7 +268,7 @@ router.delete('/:cliqueId', async (req: Request, res: Response) => {
 
     res.status(204).json({ message: 'Clique deleted successfully' });
   } catch (err) {
-    console.error(error);
+    console.error(err);
     res.status(500).json({ error: 'An error occurred while deleting the clique' });
     return;
   }
@@ -398,7 +397,7 @@ router.post(
   checkIdentity,
   checkCliqueLevelPerms(':/cliqueId', 'member'),
   uploadSingleFileHelper('file'),
-  async(req, res) => {
+  async(req: Request, res: Response) => {
 
     const cliqueId = req.params.cliqueId;
     console.log(req.file);

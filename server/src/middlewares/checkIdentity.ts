@@ -1,6 +1,5 @@
 
 import type { Request, Response, NextFunction } from "express";
-import * as z from 'zod';
 import getUserInfo from "../controllers/getUserInfo";
 
 export default async function checkIdentity (req: Request, res: Response, next: NextFunction) {
@@ -20,6 +19,7 @@ export default async function checkIdentity (req: Request, res: Response, next: 
     }
 
     res.locals.user = user;
+    console.log('user', res.locals.user);
     next();
   } catch(err) {
     console.log("Error");
