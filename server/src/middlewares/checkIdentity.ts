@@ -19,11 +19,11 @@ export default async function checkIdentity (req: Request, res: Response, next: 
       user_phone: userInfojson.phone
     }
 
-    req.body.user = user;
-    console.log(userInfojson);
+    res.locals.user = user;
     next();
   } catch(err) {
     console.log("Error");
+    console.log(err);
     res.status(500).send("Soemthing went wrong");
   }
 };

@@ -16,7 +16,7 @@ const checkJwt = auth();
 router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => {
   try {
 
-  const userId = req.body.user.user_id;
+  const userId = res.locals.user.user_id;
   const allRecords = await prisma.clique.findMany({
     where: {
       members: {
@@ -107,7 +107,7 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
     const newMember = await prisma.member.create({
       data: {
         member_id: await generateMemberId(),
-        user_id: req.body.user.user_id as string,
+        user_id: res.locals.user.user_id as string,
         clique_id: newClique.clique_id,
         is_admin: true,
         joined_at: new Date(),
@@ -129,7 +129,7 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
       members: {
         user_id: newMember.user_id,
         member_id: newMember.member_id,
-        member_name: req.body.user.user_name,
+        member_name: res.locals.user.user_name,
         is_admin: true,
       },
       isFund: newClique.is_fund,
