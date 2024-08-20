@@ -391,6 +391,36 @@ router.delete('/clique/:cliqueId/members/', checkJwt, checkIdentity, checkClique
   }
 });
 
+router.get(
+  '/:cliqueId/media',
+  checkJwt,
+  checkIdentity,
+  checkCliqueLevelPerms(':/cliqueId', 'member'),
+  async (req: Request, res: Response) => {
+    const paramSchema = z.object({
+      cliqueId: z.string()
+    });
+    
+    let params;
+    try{
+      params = paramSchema.parse(req.params);
+    } catch(err) {
+      console.log(err);
+      res.status(400).json({
+        message: "Invalid cliqueId provided or it is missing"
+      });
+      return;
+    }
+    const media = await prisma.media.findMany({
+      where: {
+        clique_id: params.cliqueId 
+      }
+    });
+
+    res.status(200).json(media);
+  }
+);
+
 router.post(
   '/:cliqueId/media/',
   checkJwt,
