@@ -142,7 +142,8 @@ const createTransactionRoute = (io: SocketIOServer) => {
   router.post('/', checkJwt, checkIdentity, checkCliqueLevelPerms("cliqueId", "member"), async (req: Request, res: Response) => {
     try {
       const { type, amount, description, cliqueId, participants } = req.body;
-      const senderId = req.body.member.member_id;
+      const senderId = res.locals.member.member_id;
+      console.log(res.locals.member);
       const parsedAmount = parseFloat(amount);
   
       if (isNaN(parsedAmount)) {

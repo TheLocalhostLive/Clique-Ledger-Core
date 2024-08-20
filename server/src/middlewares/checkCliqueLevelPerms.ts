@@ -37,7 +37,7 @@ export default function checkCliqueLevelPerms(
         cliqueId = req.query.cliqueId as string;
       } 
 
-      const userId = req.body.user.user_id as string;
+      const userId = res.locals.user.user_id as string;
       
       let memberInfo;
       if(permissionName === "admin") {
@@ -63,7 +63,9 @@ export default function checkCliqueLevelPerms(
         });
         return;
       }
-      req.body.member = memberInfo;
+
+      res.locals.member = memberInfo;
+      console.log('Member', res.locals.member)
       next();
     };
   }
