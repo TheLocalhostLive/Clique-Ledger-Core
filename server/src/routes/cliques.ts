@@ -7,6 +7,11 @@ import { auth } from 'express-oauth2-jwt-bearer';
 import checkIdentity from '../middlewares/checkIdentity';
 import checkCliqueLevelPerms from '../middlewares/checkCliqueLevelPerms';
 
+import { io } from '../app';
+import * as z from 'zod';
+import generateMediaId from '../controllers/generateMediaId';
+import { uploadSingleFileHelper } from '../controllers/multer_helper';
+
 const prisma = new PrismaClient()
 
 const router = Router();
@@ -386,5 +391,65 @@ router.delete('/clique/:cliqueId/members/', checkJwt, checkIdentity, checkClique
     res.status(500).json({ status: 'FAILURE', message: 'An error occurred while removing members' });
   }
 });
+
+router.post(
+  '/:cliqueId/media/',
+  checkJwt,
+  checkIdentity,
+  checkCliqueLevelPerms(':/cliqueId', 'member'),
+  uploadSingleFileHelper('file'),
+  async(req, res) => {
+
+    const cliqueId = req.params.cliqueId;
+    console.log(req.file);
+    if(!req.file) {
+      res.status(400).json({
+        message: "No file was provided!!"
+      });
+      return;
+    }
+    
+    const fileResponseSchema = z.object({
+      mimetype: z.string(),
+      location: z.string(),
+    }).catchall(z.unknown());
+
+    let parsedFile;
+    try{
+      parsedFile = fileResponseSchema.parse(req.file);
+    } catch(err) {
+      console.log("S3 multer::File parsing error ");
+      console.log(err);
+      res.status(500).json({
+        message: "File was not uploaded ! Please retry after a moment !"
+      });
+      return;
+    }
+    
+    
+    try{
+    console.log('user--', res.locals.member.member_id);
+    const media = await prisma.media.create({
+      data: {
+        media_id: await generateMediaId(),
+        clique_id: cliqueId,
+        file_url: parsedFile.location,
+        media_type: parsedFile.mimetype,
+        sender_id: res.locals.member.member_id
+      }
+    });
+
+    io.to(cliqueId).emit('media-created', {
+      ...media
+    });
+    res.status(201).json({message: "File uploaded successfully"});
+    return;
+  } catch(err) {
+    console.log(err);
+    res.status(500).send("Database error")
+  }
+  });
+
+  
 
 export default router;

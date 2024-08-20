@@ -64,6 +64,7 @@ model Member {
   spends       Spend[]
   ledger       Ledger[]
   transactions Transaction[] @relation("Sender")
+  media        Media[]       
 }
 
 model Ledger {
@@ -75,4 +76,15 @@ model Ledger {
   clique    Clique  @relation(fields: [clique_id], references: [clique_id])
 
   @@id([member_id])
+}
+
+model Media {
+  media_id      String    @id
+  clique_id     String 
+  file_url      String    
+  created_at    DateTime  @default(now())
+  media_type    String    // Image or video
+  sender_id     String    //eg. M00001
+
+  member        Member  @relation(fields: [sender_id], references: [member_id])
 }
