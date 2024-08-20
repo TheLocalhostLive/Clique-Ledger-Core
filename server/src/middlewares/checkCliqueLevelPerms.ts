@@ -35,7 +35,14 @@ export default function checkCliqueLevelPerms(
         cliqueId = req.params.cliqueId;
       } else if (cliqueInfo.startsWith('?')) {
         cliqueId = req.query.cliqueId as string;
-      } 
+      }
+      
+      if(!cliqueId) {
+        res.status(400).json({
+          message: "'cliqueId' key must be present"
+        });
+        return;
+      }
 
       const userId = res.locals.user.user_id as string;
       
