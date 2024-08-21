@@ -297,12 +297,24 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
       // Fetch the user details to verify existence
       const user = await prisma.user.findUnique({
         where: { user_id: userId },
-        select: { user_id: true, user_name: true }
+        select: { user_id: true, user_name: true, mail: true },
       });
 
       if (user) {
         const newMemberId = await generateMemberId();
-
+        const checkMember = await prisma.member.findMany({
+          where: {
+            user_id: userId,
+            clique_id: cliqueId,
+          },
+        })
+        if(checkMember){
+          res.status(409).json({
+            status: 'FAILURE',
+            message: `User with email id: ${user.mail} already exists in the clique`,
+          });
+          return;
+        }
         // Create the new member
         const newMember = await prisma.member.create({
           data: {
