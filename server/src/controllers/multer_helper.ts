@@ -6,6 +6,4 @@ export function uploadSingleFileHelper(fileFieldName: string) {
     const uploadSingleFile = multer({storage: createS3Storage()});
 
     return uploadSingleFile.single(fileFieldName);
-
-
 }
