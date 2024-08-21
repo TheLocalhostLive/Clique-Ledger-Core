@@ -74,12 +74,13 @@ router.get('/clique/:cliqueId/member/:memberId', checkJwt, async (req: Request, 
             let sendAmount = null;
             let receiveAmount = null;
 
-            if (transaction.sender_id === memberId) {
+            if (transaction.sender_id == memberId) {
                 sendAmount = transaction.amount;
             }
 
             // Check if the member is involved in the spend
-            const spendDetail = transaction.spend.find(spend => spend.member_id === memberId);
+            const spendDetail = transaction.spend.find(spend => spend.member_id == memberId);
+
             if (spendDetail) {
                 receiveAmount = spendDetail.amount;
             }
@@ -89,7 +90,7 @@ router.get('/clique/:cliqueId/member/:memberId', checkJwt, async (req: Request, 
                 date: transaction.done_at,
                 description: transaction.description,
                 send_amount: sendAmount,
-                Receive_amount: receiveAmount
+                receive_amount: receiveAmount
             };
         });
 

@@ -308,6 +308,7 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
             clique_id: cliqueId,
           },
         })
+        
         if(checkMember){
           res.status(409).json({
             status: 'FAILURE',
