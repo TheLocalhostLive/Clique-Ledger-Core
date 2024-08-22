@@ -342,7 +342,8 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
           clique_id: newMember.clique_id,
           is_admin: newMember.is_admin,
           joined_at: newMember.joined_at,
-          member_name: user.user_name
+          member_name: user.user_name,
+          email: user.mail
         });
       }
       else {
