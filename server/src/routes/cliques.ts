@@ -489,7 +489,7 @@ router.post(
     io.to(cliqueId).emit('media-created', {
       ...media
     });
-    res.status(201).json({message: "File uploaded successfully"});
+    res.status(201).json(media);
     return;
   } catch(err) {
     console.log(err);
