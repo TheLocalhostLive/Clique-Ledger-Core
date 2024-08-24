@@ -69,6 +69,7 @@ router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => 
         user_id: member.user_id,
         member_id: member.member_id,
         member_name: member.user.user_name,
+        email: member.user.mail,
         is_admin: member.is_admin,
       })),
       is_fund: clique.is_fund,
@@ -134,6 +135,7 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
         user_id: newMember.user_id,
         member_id: newMember.member_id,
         member_name: res.locals.user.user_name,
+        email: res.locals.user.mail,
         is_admin: true,
       },
       isFund: newClique.is_fund,
@@ -166,7 +168,8 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
             user: {
               select: {
                 user_id: true,
-                user_name: true
+                user_name: true,
+                mail: true,
               }
             }
           }
@@ -188,6 +191,7 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
         user_id: member.user_id,
         member_id: member.member_id,
         member_name: member.user.user_name,
+        email: member.user.mail,
         is_admin: member.is_admin,
       })),
       isFund: clique.is_fund,
