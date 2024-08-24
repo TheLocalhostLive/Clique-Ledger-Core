@@ -118,7 +118,8 @@ const createTransactionRoute = (io: SocketIOServer) => {
         sender: {
           member_id: transaction.sender.member_id,
           user_id: transaction.sender.user_id,
-          member_name: transaction.sender.user.user_name
+          member_name: transaction.sender.user.user_name,
+          email: transaction.sender.user.mail
         },
         clique_id: transaction.clique_id,
         transaction_type: transaction.transaction_type,
@@ -127,6 +128,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
         participants: transaction.spend.map(spend => ({
           member_id: spend.member.member_id,
           member_name: spend.member.user.user_name,
+          email: spend.member.user.mail,
           part_amount: spend.amount
         }))
       }));
@@ -188,7 +190,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
         });
   
         // Handle spend records and update participants' ledgers
-        const formattedParticipants: Array<{ member_id: string; member_name: string; part_amount: number }> = [];
+        const formattedParticipants: Array<{ member_id: string; member_name: string; email: string; part_amount: number }> = [];
         if(!participants) {
           res.status(400).json("Invalid participents provided!");
           return;
@@ -221,6 +223,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           formattedParticipants.push({
             member_id: member.member_id,
             member_name: member.user.user_name,
+            email: member.user.mail,
             part_amount: receiverAmount,
           });
 
@@ -257,7 +260,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
           description: newTransaction.description,
           transaction_type: newTransaction.transaction_type,
           sender: senderMember
-            ? { member_id: senderMember.member_id, member_name: senderMember.user.user_name, user_id: senderMember.user_id }
+            ? { member_id: senderMember.member_id, member_name: senderMember.user.user_name, user_id: senderMember.user_id, email: senderMember.user.mail }
             : null,
           participants: formattedParticipants,
           amount: newTransaction.amount,
@@ -316,6 +319,7 @@ const createTransactionRoute = (io: SocketIOServer) => {
       const participants = receivers.map(receiver => ({
         member_id: receiver.member.member_id,
         member_name: receiver.member.user.user_name,
+        email: receiver.member.user.mail,
         part_amount: receiver.amount,
       }));
 
@@ -329,7 +333,8 @@ const createTransactionRoute = (io: SocketIOServer) => {
         sender: {
           member_id: senderMember.member_id,
           member_name: senderMember.user.user_name,
-          user_id: senderMember.user_id
+          user_id: senderMember.user_id,
+          email: senderMember.user.mail
         },
         participants: participants,
         amount: transaction.amount,
