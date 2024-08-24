@@ -135,7 +135,7 @@ router.post('/', checkJwt, checkIdentity, async (req: Request, res: Response) =>
         user_id: newMember.user_id,
         member_id: newMember.member_id,
         member_name: res.locals.user.user_name,
-        email: res.locals.user.mail,
+        email: res.locals.user.user_email,
         is_admin: true,
       },
       isFund: newClique.is_fund,
