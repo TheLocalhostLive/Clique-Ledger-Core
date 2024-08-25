@@ -306,13 +306,13 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
 
       if (user) {
         const newMemberId = await generateMemberId();
-        const checkMember = await prisma.member.findMany({
+        const checkMember = await prisma.member.findFirst({
           where: {
             user_id: userId,
             clique_id: cliqueId,
           },
         })
-        
+
         if(checkMember){
           res.status(409).json({
             status: 'FAILURE',
