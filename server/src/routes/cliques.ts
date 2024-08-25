@@ -380,7 +380,7 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
 
 
 // remove a member
-router.delete('/clique/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerms(":/cliqueId", "admin"), async (req: Request, res: Response) => {
+router.delete('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerms(":/cliqueId", "admin"), async (req: Request, res: Response) => {
   try {
     const userIds: string[] = req.body;
 
