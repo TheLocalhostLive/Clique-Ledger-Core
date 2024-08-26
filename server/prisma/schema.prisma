@@ -27,7 +27,7 @@ model Transaction {
   done_at          DateTime @default(now())
   spend            Spend[]
   sender           Member   @relation("Sender", fields: [sender_id], references: [member_id])
-  clique           Clique   @relation(fields: [clique_id], references: [clique_id])
+  clique           Clique   @relation(fields: [clique_id], references: [clique_id], onDelete: Cascade)
 }
 
 model Spend {
@@ -60,7 +60,7 @@ model Member {
   is_admin     Boolean
   joined_at    DateTime
   user         User          @relation(fields: [user_id], references: [user_id])
-  clique       Clique        @relation(fields: [clique_id], references: [clique_id])
+  clique       Clique        @relation(fields: [clique_id], references: [clique_id], onDelete: Cascade)
   spends       Spend[]
   ledger       Ledger[]
   transactions Transaction[] @relation("Sender")
@@ -73,7 +73,7 @@ model Ledger {
   amount    Float
   is_due    Boolean
   member    Member  @relation(fields: [member_id], references: [member_id])
-  clique    Clique  @relation(fields: [clique_id], references: [clique_id])
+  clique    Clique  @relation(fields: [clique_id], references: [clique_id], onDelete: Cascade)
 
   @@id([member_id])
 }
