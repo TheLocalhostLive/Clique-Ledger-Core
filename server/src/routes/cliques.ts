@@ -77,9 +77,12 @@ router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => 
       isActive: clique.is_active,
       last_transaction: clique.transactions.length > 0 ? {
         transaction_id: clique.transactions[0].transaction_id,
+        clique_id: clique.clique_id,
+        transaction_type: clique.transactions[0].transaction_type,
         amount: clique.transactions[0].amount,
         description: clique.transactions[0].description,
         sender_id: clique.transactions[0].sender_id,
+        is_verified: clique.transactions[0].is_verified,
         done_at: clique.transactions[0].done_at,
       } : null
     }));
