@@ -30,6 +30,7 @@ app.use('/api/v1/ledgers', ledgers);
 
 // Test route
 app.get('/', (req: Request, res: Response) => {
+  console.log("Test");
   res.send('Hello, this is get ...');
 });
 
