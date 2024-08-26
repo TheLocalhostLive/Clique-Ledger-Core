@@ -90,7 +90,7 @@ router.get('/clique/:cliqueId/member/:memberId', checkJwt, async (req: Request, 
                 date: transaction.done_at,
                 description: transaction.description,
                 send_amount: sendAmount,
-                receive_amount: receiveAmount
+                receive_amount: receiveAmount,
             };
         });
 

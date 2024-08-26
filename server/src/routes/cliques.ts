@@ -26,28 +26,28 @@ router.get('/', checkJwt, checkIdentity, async (req: Request, res: Response) => 
       members: {
         some: {
           user_id: userId,
-          is_active: true
+          is_active: true,
         }
       }
     },
     include: {
       members: {
         where: {
-          is_active: true
+          is_active: true,
         },
         include: {
           user: {
             select: {
               user_id: true,
               user_name: true,
-              mail: true
+              mail: true,
             }
           }
         }
       },
       transactions: {
         orderBy: {
-          done_at: 'desc'
+          done_at: 'desc',
         },
         take: 1, // Get only the latest transaction
       }
@@ -262,12 +262,6 @@ router.delete('/:cliqueId', async (req: Request, res: Response) => {
 
     // Delete all associated transactions
     await prisma.transaction.deleteMany({
-      where: {
-        clique_id: cliqueId,
-      },
-    });
-    // Delete all associated members
-    await prisma.member.deleteMany({
       where: {
         clique_id: cliqueId,
       },
