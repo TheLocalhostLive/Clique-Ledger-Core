@@ -309,8 +309,9 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
             clique_id: cliqueId,
           },
         })
+
         if(checkMember){
-        if(checkMember?.is_active == true){
+        if(checkMember.is_active == true){
           res.status(409).json({
             status: 'FAILURE',
             message: `User with email id: ${user.mail} already exists in the clique`,
@@ -318,13 +319,12 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
           return;
         }
         else{
-          await prisma.member.updateMany({
-            where: {
-              user_id: userId,
-              clique_id: cliqueId,
-            },
+          await prisma.member.update({
             data: {
               is_active: true,
+            },
+            where: {
+              member_id: checkMember.member_id,
             },
           });
           res.status(201).json({
@@ -362,7 +362,7 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
           is_admin: newMember.is_admin,
           joined_at: newMember.joined_at,
           member_name: user.user_name,
-          email: user.mail
+          email: user.mail,
         });
       }
       else {
