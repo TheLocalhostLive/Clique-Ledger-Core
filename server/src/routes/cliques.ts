@@ -210,7 +210,7 @@ router.get('/:cliqueId', async (req: Request, res: Response) => {
 });
 
 // Update clique name using clique id
-router.patch('/:cliqueId', async (req: Request, res: Response) => {
+router.patch('/:cliqueId', checkJwt, checkIdentity,checkCliqueLevelPerms(":/cliqueId", "member"),  async (req: Request, res: Response) => {
   try {
     const cliqueId: string = req.params.cliqueId;
     const name: string = req.body.name;
