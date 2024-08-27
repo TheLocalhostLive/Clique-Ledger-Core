@@ -65,11 +65,10 @@ router.get('/clique/:cliqueId/member/:memberId', checkJwt, async (req: Request, 
                     { spend: { some: { member_id: memberId }}}
                 ]
             },
-            include: {
-                spend: true
+            include:{
+                spend: true,
             }
         });
-
         const formattedTransactions = transactions.map(transaction => {
             let sendAmount = null;
             let receiveAmount = null;
