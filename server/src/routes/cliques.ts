@@ -245,7 +245,7 @@ router.patch('/:cliqueId', checkJwt, checkIdentity,checkCliqueLevelPerms(":/cliq
 });
 
 // Delete a clique using clique id
-router.delete('/:cliqueId', async (req: Request, res: Response) => {
+router.delete('/:cliqueId', checkJwt, checkIdentity, checkCliqueLevelPerms(":/cliqueId", "admin"), async (req: Request, res: Response) => {
   try {
     const cliqueId: string = req.params.cliqueId;
 
