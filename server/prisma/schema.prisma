@@ -26,7 +26,7 @@ model Transaction {
   is_verified      String   @default("not_verified")
   done_at          DateTime @default(now())
   spend            Spend[]
-  sender           Member   @relation("Sender", fields: [sender_id], references: [member_id])
+  sender           Member   @relation("Sender", fields: [sender_id], references: [member_id], onDelete: Cascade)
   clique           Clique   @relation(fields: [clique_id], references: [clique_id], onDelete: Cascade)
 }
 
