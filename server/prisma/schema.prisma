@@ -35,7 +35,7 @@ model Spend {
   member_id      String
   amount         Float
   transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id], onDelete: Cascade)
-  member         Member      @relation(fields: [member_id], references: [member_id])
+  member         Member      @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
 
   @@id([transaction_id, member_id])
 }
@@ -50,6 +50,7 @@ model Clique {
   members      Member[]
   transactions Transaction[]
   ledger       Ledger[]
+  Media        Media[]
 }
 
 model Member {
@@ -64,7 +65,7 @@ model Member {
   spends       Spend[]
   ledger       Ledger[]
   transactions Transaction[] @relation("Sender")
-  media        Media[]       
+  media        Media[]
 }
 
 model Ledger {
@@ -72,19 +73,20 @@ model Ledger {
   clique_id String
   amount    Float
   is_due    Boolean
-  member    Member  @relation(fields: [member_id], references: [member_id])
+  member    Member  @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   clique    Clique  @relation(fields: [clique_id], references: [clique_id], onDelete: Cascade)
 
   @@id([member_id])
 }
 
 model Media {
-  media_id      String    @id
-  clique_id     String 
-  file_url      String    
-  created_at    DateTime  @default(now())
-  media_type    String    // Image or video
-  sender_id     String    //eg. M00001
+  media_id   String   @id
+  clique_id  String
+  file_url   String
+  created_at DateTime @default(now())
+  media_type String
+  sender_id  String
 
-  member        Member  @relation(fields: [sender_id], references: [member_id])
+  clique Clique @relation(fields: [clique_id], references: [clique_id], onDelete: Cascade)
+  member Member @relation(fields: [sender_id], references: [member_id], onDelete: Cascade)
 }
