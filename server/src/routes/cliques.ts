@@ -6,7 +6,7 @@ import { auth } from 'express-oauth2-jwt-bearer';
 import checkIdentity from '../middlewares/checkIdentity';
 import checkCliqueLevelPerms from '../middlewares/checkCliqueLevelPerms';
 
-import { io } from '../app';
+import { io, socketUidMap } from '../app';
 import * as z from 'zod';
 import generateMediaId from '../controllers/generateMediaId';
 import { uploadSingleFileHelper } from '../controllers/multer_helper';
@@ -387,6 +387,19 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
       message: 'Members added successfully',
       data: newMembers,
     });
+    
+    //Notifying users that they are added to clique
+    userIds.forEach(userId => {
+      const socketId = socketUidMap.get(userId);
+      if(!socketId) return;
+      
+      const payload = {data: {
+        cliqueId
+      }};
+
+      if(socketUidMap.has(userId)) io.to(socketId).emit("added-to-clique", JSON.stringify(payload))
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ status: 'FAILURE', message: 'An error occurred while adding members' });
