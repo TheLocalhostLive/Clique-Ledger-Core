@@ -382,23 +382,35 @@ router.post('/:cliqueId/members/', checkJwt, checkIdentity, checkCliqueLevelPerm
       return;
     }
 
+    //Notifying users that they are added to clique
+    userIds.forEach(userId => {
+      const socketId = socketUidMap.get(userId);
+      if(!socketId) return;
+
+      const payload = {data: {
+        cliqueId
+      }};
+
+      if(socketUidMap.has(userId)) {
+        const userSocket = io.sockets.sockets.get(socketId);
+        if(userSocket) {
+          userSocket.join(cliqueId);
+          io.to(socketId).emit("added-to-clique", JSON.stringify(payload));
+          console.log(`User ${socketId} added to room ${cliqueId}`);
+        } else {
+          console.log("Receiver is not online..");
+        }
+        
+      }
+    });
+
     res.status(201).json({
       status: 'SUCCESS',
       message: 'Members added successfully',
       data: newMembers,
     });
     
-    //Notifying users that they are added to clique
-    userIds.forEach(userId => {
-      const socketId = socketUidMap.get(userId);
-      if(!socketId) return;
-      
-      const payload = {data: {
-        cliqueId
-      }};
 
-      if(socketUidMap.has(userId)) io.to(socketId).emit("added-to-clique", JSON.stringify(payload))
-    });
 
   } catch (err) {
     console.error(err);

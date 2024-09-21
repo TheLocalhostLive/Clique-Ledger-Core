@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
         },
       },
     });
-
+    console.log(rooms);
     rooms.forEach((room) => {
       socket.join(room.clique_id);
       console.log(`User joined room: ${room}`);
