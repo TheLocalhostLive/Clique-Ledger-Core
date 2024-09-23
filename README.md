@@ -40,7 +40,7 @@ In such case you may restart the server and the error will resolve
 
 ```bash
 docker compose down
-docker compose up --watch -d
+docker compose up --watch
 ```
 
 --- 
