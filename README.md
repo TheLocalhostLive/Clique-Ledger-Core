@@ -2,30 +2,13 @@
 
 ---
 
-### **1. To build and Start the Server (in watch mode)**  
-Run the following command to start the server in watch mode:
+### 1. How to setup   
 
-```bash
-docker compose build
-docker compose up --watch
-```
-
----
-
-### **2. Handling Prisma Schema Changes**
-
-If you make changes to the `prisma.schema`, follow these steps:
-
-1. **Start the server** in one terminal:
+1. **Start the server**
    ```bash
-   docker compose up
+   docker compose up -d
    ```
-2. **Run Prisma commands** in another terminal:
-   - If there are changes to existing tables, reset the migrations:
-     ```bash
-     npx prisma migrate reset --force
-     ```
-   - Then apply the migrations:
+2. **Run Migrations**: 
      ```bash
      npx prisma migrate dev --name init
      ```
@@ -34,20 +17,31 @@ If you make changes to the `prisma.schema`, follow these steps:
      ```bash
      docker compose down
      ```
-4. **Rebuild the containers** after schema changes:
+4. **Rebuild the containers**: 
    ```bash
    docker compose build
    ```
-5. **Restart the server** in watch mode to continue development:
-   ```bash
-   docker compose up --watch
-   ```
+
 
 ---
 
-### **3. Troubleshooting: Module Not Found Error**  
+### **2. How to start the server after setup**  
 
-If you encounter a `./dist/app.js module not found` error, stop the server by pressing `CTRL + C` and restart it. This should resolve the issue.
+After you have successfully set up the server you need to run the following command to run the server and start development.
+
+```bash
+docker compose up --watch -d
+```
+
+### 2. Troubleshooting  
+
+We have noticed when we run the nodejs server for the first time after setup we sometimes get a module not found error.
+In such case you may restart the server and the error will resolve
+
+```bash
+docker compose down
+docker compose up --watch -d
+```
 
 --- 
 
