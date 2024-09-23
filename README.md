@@ -13,7 +13,7 @@
      npx prisma migrate dev --name init
      ```
 3. **Stop the server** once the migrations are applied:
-   - Press `CTRL + C` or run:
+
      ```bash
      docker compose down
      ```
