@@ -30,7 +30,7 @@
 After you have successfully set up the server you need to run the following command to run the server and start development.
 
 ```bash
-docker compose up --watch -d
+docker compose up --watch
 ```
 
 ### 2. Troubleshooting  
