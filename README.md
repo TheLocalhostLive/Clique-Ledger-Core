@@ -4,20 +4,22 @@
 
 ### 1. How to setup   
 
-1. **Start the server**
+1. **Start the server**  
+   After cloning the repository you need to go to the folder where you have cloned and follow along the steps below.
    ```bash
+   cd server/
    docker compose up -d
    ```
-2. **Run Migrations**: 
+3. **Run Migrations**: 
      ```bash
      npx prisma migrate dev --name init
      ```
-3. **Stop the server** once the migrations are applied:
+4. **Stop the server** once the migrations are applied:
 
      ```bash
      docker compose down
      ```
-4. **Rebuild the containers**: 
+5. **Rebuild the containers**: 
    ```bash
    docker compose build
    ```
