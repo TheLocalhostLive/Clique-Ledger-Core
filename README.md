@@ -45,4 +45,10 @@ docker compose up --watch
 
 --- 
 
+### Database Model:
+Link: https://dbdiagram.io/d/66952aa99939893daef73792
+
+![Clique_Ledger_Relational_Model 1](https://github.com/user-attachments/assets/224c1564-5a94-4cb1-8f97-fde8ee8ad154)
+
+---
 
